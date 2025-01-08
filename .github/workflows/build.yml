@@ -26,18 +26,24 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
+      - name: Install Ruby and fpm dependencies
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y ruby ruby-dev make gcc
+            sudo gem install --no-document fpm
+
+      - name: Set PATH for Ruby
+        run: |
+            echo "export PATH=$PATH:/usr/local/bin" >> $GITHUB_ENV
+
       - name: Clean npm environment
         run: |
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm cache clean --force
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm i
 
-      - name: Build Docker image with Ruby and npm dependencies
-        run: |
-            docker build -t my-app-with-ruby .
 
       - name: build-linux
-        run: docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace my-app-with-ruby npm run build:linux --arm64
-
+        run: docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm run build:linux --arm64
 
       - name: release
         uses: softprops/action-gh-release@v2
