@@ -16,9 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - # Add support for more platforms with QEMU (optional)
-        # https://github.com/docker/setup-qemu-action
-        name: Set up QEMU
+      - name: Set up QEMU (optional, for cross-platform builds)
         uses: docker/setup-qemu-action@v3
         with:
           platforms: linux/arm64
@@ -28,24 +26,24 @@ jobs:
 
       - name: Install Ruby and fpm dependencies
         run: |
-           docker run sudo apt-get update
-           docker run sudo apt-get install -y ruby ruby-dev make gcc
-           docker run sudo gem install --no-document fpm
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev make gcc
+          sudo gem install --no-document fpm
 
       - name: Set PATH for Ruby
         run: |
-          docker run echo "export PATH=$PATH:/usr/local/bin" >> $GITHUB_ENV
+          echo "export PATH=$PATH:/usr/local/bin:/usr/bin/ruby" >> $GITHUB_ENV
+          ruby -v
 
       - name: Clean npm environment
         run: |
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm cache clean --force
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm i
 
-
-      - name: build-linux
+      - name: Build the application for Linux
         run: docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm run build:linux --arm64
 
-      - name: release
+      - name: Release the application
         uses: softprops/action-gh-release@v2
         with:
           draft: true
