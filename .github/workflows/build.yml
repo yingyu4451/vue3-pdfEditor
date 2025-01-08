@@ -31,7 +31,6 @@ jobs:
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm install
 
       - name: build-linux
-        if: matrix.os == 'ubuntu-latest'
         run: npm run build:linux --arm64
 
       - name: release
