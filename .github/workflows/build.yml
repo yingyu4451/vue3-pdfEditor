@@ -1,54 +1,26 @@
-name: Build/release Electron app
+name: CI for ARM64 architecture
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  release:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            architecture: arm64
-
+  install:
+    runs-on: ubuntu-22.04  # 使用支持 ARM64 的 Ubuntu 环境
+    architecture: arm64    # 强制使用 ARM64 架构
 
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@main
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Install Node.js
-        uses: actions/setup-node@main
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 20
-          architecture: ${{ matrix.architecture }}
+          node-version: 18  # 你可以根据需要选择不同的 Node.js 版本
 
-      - name: Install Dependencies
-        run: npm install --arch=arm64
-
-      - name: Build Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: npm run build:linux --arm64
-
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          files: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.snap
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
-            dist/*.yml
-            dist/*.blockmap
-            dist/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      - name: Install dependencies
+        run: npm install  # 安装依赖
