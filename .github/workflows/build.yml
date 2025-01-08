@@ -2,8 +2,8 @@ name: Build/release Electron app
 
 on:
   push:
-    branch:
-      [main]
+    branches:
+      - main
 
 jobs:
   release:
@@ -11,7 +11,11 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            architecture: arm64
+          - os: macos-latest
+          - os: windows-latest
 
     steps:
       - name: Check out Git repository
@@ -21,23 +25,24 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+          architecture: ${{ matrix.architecture || 'x64' }}
 
       - name: Install Dependencies
         run: npm install
 
-      - name: build-linux
+      - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
         run: npm run build:linux
 
-      - name: build-mac
+      - name: Build Mac
         if: matrix.os == 'macos-latest'
         run: npm run build:mac
 
-      - name: build-win
+      - name: Build Windows
         if: matrix.os == 'windows-latest'
         run: npm run build:win
 
-      - name: release
+      - name: Release
         uses: softprops/action-gh-release@v1
         with:
           draft: true
