@@ -37,7 +37,6 @@ jobs:
 
       - name: Clean npm environment
         run: |
-          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm cache clean --force
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm i
 
       - name: Build the application for Linux
