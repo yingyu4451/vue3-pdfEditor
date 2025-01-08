@@ -26,19 +26,8 @@ jobs:
 
       - name: Install Ruby and fpm dependencies
         run: |
-          FROM node:latest
-          RUN apt-get update && \
-          apt-get install -y ruby ruby-dev make gcc && \
-          gem install --no-document fpm
-          WORKDIR /workspace
-          COPY . .
-          RUN npm install
-          CMD ["npm", "start"]
-
-
-      - name: Build Docker image with Ruby and npm dependencies
-        run: |
-            docker build -t my-app-with-ruby .
+          sudo apt-get install ruby-full
+          sudo gem install fpm
 
       - name: Clean npm environment
         run: |
@@ -46,7 +35,7 @@ jobs:
 
       - name: Run build in Docker
         run: |
-            docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace my-app-with-ruby npm run build:linux --arm64
+            docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm run arm
 
       - name: Release the application
         uses: softprops/action-gh-release@v2
