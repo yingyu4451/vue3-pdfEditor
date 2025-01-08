@@ -10,17 +10,18 @@ on:
 
 jobs:
   install:
-    runs-on: ubuntu-22.04  # Ubuntu environment to run Docker
+    runs-on: ubuntu-22.04 # Ubuntu environment to run Docker
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      -
-        # Add support for more platforms with QEMU (optional)
+      - # Add support for more platforms with QEMU (optional)
         # https://github.com/docker/setup-qemu-action
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/arm64
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
@@ -28,3 +29,22 @@ jobs:
       - name: Run npm install in ARM64 Docker container
         run: |
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm install
+
+      - name: release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.snap
+            dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
+            dist/*.yml
+            dist/*.blockmap
+            dist/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
