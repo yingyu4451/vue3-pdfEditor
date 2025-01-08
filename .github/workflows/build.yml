@@ -27,7 +27,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Install Dependencies
-        run: npm install --arm64
+        run: npm install --arch=arm64
 
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
