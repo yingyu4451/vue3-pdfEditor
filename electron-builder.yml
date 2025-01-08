@@ -36,6 +36,7 @@ linux:
     - apk
   maintainer: electronjs.org
   category: Utility
+  DEFAULTARCH: arm64
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
