@@ -21,4 +21,4 @@ jobs:
 
       - name: Run npm install in ARM64 Docker container
         run: |
-          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:20 npm install
+          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm install
