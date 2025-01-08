@@ -14,11 +14,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@main
 
       - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@main
 
       - name: Run npm install in ARM64 Docker container
         run: |
-          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:20 npm install
+          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:18 npm install
