@@ -35,7 +35,7 @@ jobs:
 
       - name: Run build in Docker
         run: |
-            docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm run arm
+            docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm run build:linux
 
       - name: Release the application
         uses: softprops/action-gh-release@v2
