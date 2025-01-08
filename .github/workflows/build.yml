@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    runs-on: [linux, arm64]
+    runs-on: [arm64]
 
     strategy:
       matrix:
