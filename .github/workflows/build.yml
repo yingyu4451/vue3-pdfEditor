@@ -1,4 +1,4 @@
-name: CI for ARM64 architecture
+name: CI for ARM64 using Docker
 
 on:
   push:
@@ -10,17 +10,15 @@ on:
 
 jobs:
   install:
-    runs-on: ubuntu-22.04  # 使用支持 ARM64 的 Ubuntu 环境
-    architecture: arm64    # 强制使用 ARM64 架构
+    runs-on: ubuntu-22.04  # Ubuntu environment to run Docker
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18  # 你可以根据需要选择不同的 Node.js 版本
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
 
-      - name: Install dependencies
-        run: npm install  # 安装依赖
+      - name: Run npm install in ARM64 Docker container
+        run: |
+          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:20 npm install
