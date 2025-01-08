@@ -26,9 +26,16 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
-      - name: Run npm install in ARM64 Docker container
+      - name: Clean npm environment
         run: |
+          rm -rf node_modules package-lock.json
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm install
+
+      - name: Clear npm cache and install dependencies
+        run: |
+          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm cache clean --force
+          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm install
+
 
       - name: build-linux
         run: npm run build:linux --arm64
