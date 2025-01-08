@@ -10,7 +10,7 @@ on:
 
 jobs:
   install:
-    runs-on: ubuntu-22.04 # Ubuntu environment to run Docker
+    runs-on: ubuntu-latest # Ubuntu environment to run Docker
 
     steps:
       - name: Checkout repository
