@@ -28,13 +28,13 @@ jobs:
 
       - name: Install Ruby and fpm dependencies
         run: |
-            sudo apt-get update
-            sudo apt-get install -y ruby ruby-dev make gcc
-            sudo gem install --no-document fpm
+           docker run sudo apt-get update
+           docker run sudo apt-get install -y ruby ruby-dev make gcc
+           docker run sudo gem install --no-document fpm
 
       - name: Set PATH for Ruby
         run: |
-            echo "export PATH=$PATH:/usr/local/bin" >> $GITHUB_ENV
+          docker run echo "export PATH=$PATH:/usr/local/bin" >> $GITHUB_ENV
 
       - name: Clean npm environment
         run: |
