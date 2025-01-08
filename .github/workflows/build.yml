@@ -25,7 +25,6 @@ jobs:
         with:
           node-version: 20
           architecture: ${{ matrix.architecture }}
-          cache: false
 
       - name: Install Dependencies
         run: npm install --arch=arm64
