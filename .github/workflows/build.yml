@@ -31,6 +31,12 @@ jobs:
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm cache clean --force
           docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm i
 
+      - name: Install Ruby and fpm dependencies
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y ruby ruby-dev make gcc
+            sudo gem install --no-document fpm
+
       - name: build-linux
         run: docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm run build:linux --arm64
 
