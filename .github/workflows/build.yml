@@ -29,8 +29,8 @@ jobs:
       - name: Clean npm environment
         run: |
           rm -rf node_modules package-lock.json
-          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm cache clean --force
-          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace node:latest npm install
+          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace npm cache clean --force
+          docker run --platform linux/arm64 -v $PWD:/workspace -w /workspace npm i
 
       - name: build-linux
         run: npm run build:linux --arm64
