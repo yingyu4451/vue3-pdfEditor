@@ -1,5 +1,5 @@
 import './assets/main.css'
-
+import './assets/pdf.worker.min.mjs'
 import { createApp } from 'vue'
 import App from './App.vue'
 
