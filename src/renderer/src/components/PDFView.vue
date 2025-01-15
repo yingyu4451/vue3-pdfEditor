@@ -1,6 +1,7 @@
 <template>
-  <div class="pdf-viewer h-full flex flex-col" v-loading="loading">
-    <div ref="pdfContainer" class="flex-1"></div>
+  <div id="pdfViewer" class="h-full flex flex-col" v-loading="loading">
+    <div ref="pdfContainer" class="flex-1">
+    </div>
     <!-- 用于动态创建 canvas 的容器 -->
     <div class="controls">
       <div @click="prevPage" :disabled="currentPage <= 1">上一页</div>
@@ -40,6 +41,9 @@ const loadPdf = async () => {
 // 渲染页面
 const renderPage = (pageNumber) => {
   pdfDoc.getPage(pageNumber).then((page) => {
+    console.log("pageNumber",pageNumber);
+    console.log("page",page);
+
     const scale = 1.5 // 设置缩放级别
     const viewport = page.getViewport({ scale })
 
@@ -66,6 +70,15 @@ const renderPage = (pageNumber) => {
   })
 }
 
+const pdfView = document.querySelector('pdfViewer')
+
+function pdfWheel(event){
+  event.preventDefault();
+  console.log(1);
+
+}
+
+pdfView.onwheel = pdfWheel;
 // 上一页
 const prevPage = () => {
   if (currentPage.value > 1) {
@@ -90,10 +103,12 @@ watch(currentPage, (newPage) => {
 onMounted(() => {
   loadPdf()
 })
+
+
 </script>
 
 <style scoped>
-.pdf-viewer {
+#pdfViewer {
   display: flex;
   flex-direction: column;
   align-items: center;
