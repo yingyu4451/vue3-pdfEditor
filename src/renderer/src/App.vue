@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import PDFView from './components/PDFView.vue'
-
+import PDFView from './view/PDF/PDFView.vue'
 </script>
 
 <template>

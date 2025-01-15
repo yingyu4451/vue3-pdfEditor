@@ -1,12 +1,11 @@
 <template>
-  <div id="pdfViewer" class="h-full flex flex-col" v-loading="loading">
-    <div ref="pdfContainer" class="flex-1">
-    </div>
+  <div id="pdfViewer" v-loading="loading" class="h-full flex flex-col">
+    <div ref="pdfContainer" class="flex-1"></div>
     <!-- 用于动态创建 canvas 的容器 -->
     <div class="controls">
-      <div @click="prevPage" :disabled="currentPage <= 1">上一页</div>
+      <div :disabled="currentPage <= 1" @click="prevPage">上一页</div>
       <span>{{ currentPage }} / {{ totalPages }}</span>
-      <div @click="nextPage" :disabled="currentPage >= totalPages">下一页</div>
+      <div :disabled="currentPage >= totalPages" @click="nextPage">下一页</div>
     </div>
   </div>
 </template>
@@ -14,9 +13,9 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
-import pdf from './../assets/1.pdf'
+import pdf from './../../assets/1.pdf'
 
-const pdfUrl = pdf;
+const pdfUrl = pdf
 
 const pdfCanvas = ref(null)
 const pdfContainer = ref(null)
@@ -41,8 +40,8 @@ const loadPdf = async () => {
 // 渲染页面
 const renderPage = (pageNumber) => {
   pdfDoc.getPage(pageNumber).then((page) => {
-    console.log("pageNumber",pageNumber);
-    console.log("page",page);
+    console.log('pageNumber', pageNumber)
+    console.log('page', page)
 
     const scale = 1.5 // 设置缩放级别
     const viewport = page.getViewport({ scale })
@@ -72,13 +71,12 @@ const renderPage = (pageNumber) => {
 
 const pdfView = document.querySelector('pdfViewer')
 
-function pdfWheel(event){
-  event.preventDefault();
-  console.log(1);
-
+function pdfWheel(event) {
+  event.preventDefault()
+  console.log(1)
 }
 
-pdfView.onwheel = pdfWheel;
+pdfView.onwheel = pdfWheel
 // 上一页
 const prevPage = () => {
   if (currentPage.value > 1) {
@@ -103,8 +101,6 @@ watch(currentPage, (newPage) => {
 onMounted(() => {
   loadPdf()
 })
-
-
 </script>
 
 <style scoped>
