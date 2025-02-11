@@ -1,15 +1,39 @@
 <template>
   <div class="common-layout">
-    <el-header>
-
+    <el-header height="60px">
+      <el-row :gutter="20">
+        <el-col :span="6" :offset="0">
+          <el-button-group>
+            <el-button type="success" plain icon="" @click="">缩略图</el-button>
+            <el-button type="success" plain icon="Back" @click="">撤销</el-button>
+            <el-button type="success" plain icon="Right" @click="">恢复</el-button>
+          </el-button-group>
+        </el-col>
+        <el-col class="text-center" :span="12" :offset="0">
+          <el-button-group>
+            <el-button type="success" plain="" icon="Position" @click="">选择</el-button>
+            <el-button type="success" plain="" icon="Plus" @click=""></el-button>
+            <el-button type="success" plain="" tag="input" @click=""></el-button>
+            <el-button type="success" plain="" icon="Minus" @click=""></el-button>
+          </el-button-group>
+        </el-col>
+        <el-col :span="6" :offset="0">
+          <el-button-group>
+            <el-button type="success" plain="" icon="Position" @click="">新建标目</el-button>
+            <el-button type="success" plain="" icon="Plus" @click="">标目列表</el-button>
+          </el-button-group>
+        </el-col>
+      </el-row>
     </el-header>
     <el-container>
-      <el-aside class="text-cyan-600" width="200px">预览</el-aside>
+      <el-aside class="leftAside" width="200px">
+        <p class="numPages">0 页</p>
+      </el-aside>
       <el-container>
         <el-main>
           <div id="pdfViewer" class="">
-            <div ref="pdfContainer" @wheel="pdfWheel" class=""></div>
             <!-- 用于动态创建 canvas 的容器 -->
+            <div ref="pdfContainer" @wheel="pdfWheel" class=""></div>
             <div class="controls">
               <div :disabled="currentPage <= 1" @click="prevPage">上一页</div>
               <span>{{ currentPage }} / {{ totalPages }}</span>
@@ -17,9 +41,8 @@
             </div>
           </div>
         </el-main>
-        <el-footer>Footer</el-footer>
       </el-container>
-      <el-aside width="200px">Aside</el-aside>
+      <el-aside class="rightAside" width="200px">右边框</el-aside>
     </el-container>
   </div>
 </template>
@@ -57,7 +80,7 @@ const renderPage = (pageNumber) => {
     console.log('pageNumber', pageNumber)
     console.log('page', page)
 
-    const scale = 1.5 // 设置缩放级别
+    const scale = 1.0 // 设置缩放级别
     const viewport = page.getViewport({ scale })
 
     const newCanvas = document.createElement('canvas')
@@ -130,5 +153,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
+.el-header {
+  border-bottom: 1px solid var(--el-border-color);
+  .el-row{
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+}
+.el-aside.rightAside {
+  border-left: 1px solid var(--el-border-color);
+}
+.el-aside.leftAside {
+  border-right: 1px solid var(--el-border-color);
+}
+.common-layout{
+  background-color: rgb(239.8, 248.9, 235.3) !important;
+  height: 100vh;
+}
+.controls{
+  display: flex;
+}
 </style>
