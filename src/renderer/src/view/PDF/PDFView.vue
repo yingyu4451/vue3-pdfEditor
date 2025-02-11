@@ -1,23 +1,37 @@
 <template>
-  <div id="pdfViewer" v-loading="loading" class="h-full flex flex-col">
-    <div ref="pdfContainer" class="flex-1"></div>
-    <!-- 用于动态创建 canvas 的容器 -->
-    <div class="controls">
-      <div :disabled="currentPage <= 1" @click="prevPage">上一页</div>
-      <span>{{ currentPage }} / {{ totalPages }}</span>
-      <div :disabled="currentPage >= totalPages" @click="nextPage">下一页</div>
-    </div>
+  <div class="common-layout">
+    <el-header>
+
+    </el-header>
+    <el-container>
+      <el-aside class="text-cyan-600" width="200px">预览</el-aside>
+      <el-container>
+        <el-main>
+          <div id="pdfViewer" class="">
+            <div ref="pdfContainer" @wheel="pdfWheel" class=""></div>
+            <!-- 用于动态创建 canvas 的容器 -->
+            <div class="controls">
+              <div :disabled="currentPage <= 1" @click="prevPage">上一页</div>
+              <span>{{ currentPage }} / {{ totalPages }}</span>
+              <div :disabled="currentPage >= totalPages" @click="nextPage">下一页</div>
+            </div>
+          </div>
+        </el-main>
+        <el-footer>Footer</el-footer>
+      </el-container>
+      <el-aside width="200px">Aside</el-aside>
+    </el-container>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
-import pdf from './../../assets/1.pdf'
+import pdf from './../../../../../resources/1.pdf'
 
 const pdfUrl = pdf
 
-const pdfCanvas = ref(null)
+// const pdfCanvas = ref(null)
 const pdfContainer = ref(null)
 const currentPage = ref(1)
 const totalPages = ref(0)
@@ -69,22 +83,6 @@ const renderPage = (pageNumber) => {
   })
 }
 
-const pdfView = document.querySelector('pdfViewer')
-
-function pdfWheel(event) {
-  event.preventDefault()
-  console.log(1)
-}
-
-pdfView.onwheel = pdfWheel
-// 上一页
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-    renderPage(currentPage.value)
-  }
-}
-
 // 下一页
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
@@ -93,6 +91,34 @@ const nextPage = () => {
   }
 }
 
+const prevPage = () => {
+  if (currentPage.value <= totalPages.value && currentPage.value != 1) {
+    currentPage.value--
+    renderPage(currentPage.value)
+  }
+}
+// const currentKeyDown = document.addEventListener('keydown', (event) => {
+//   console.log(`按下的键: ${event.key}, 键码: ${event.code}`)
+// })
+
+let lastScrollTime = 0 // 用于节流
+const pdfWheel = (event) => {
+  event.preventDefault()
+  console.log(event)
+
+  const now = Date.now()
+  const throttleTime = 100 // 节流时间 (500ms)
+
+  // 如果滚动频率太快，则忽略事件
+  if (now - lastScrollTime < throttleTime) return
+  lastScrollTime = now
+
+  if (event.deltaY > 0) {
+    nextPage() // 向下滚动翻到下一页
+  } else if (event.deltaY < 0) {
+    prevPage() // 向上滚动翻到上一页
+  }
+}
 // 监听页码变化并重新渲染
 watch(currentPage, (newPage) => {
   renderPage(newPage)
@@ -104,27 +130,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-#pdfViewer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px;
-}
 
-canvas {
-  border: 1px solid #000;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  margin-top: 10px;
-
-  div,
-  span {
-    padding: 5px 10px;
-    margin: 0 5px;
-    cursor: pointer;
-  }
-}
 </style>
