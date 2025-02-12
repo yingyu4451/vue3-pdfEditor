@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import Pdf from '../view/PDF/PDFView.vue'
+import Pdf from '../view/PdfEditor/PdfEditor.vue'
 import start from '../view/StartMenu/StartMenuView.vue'
 
 

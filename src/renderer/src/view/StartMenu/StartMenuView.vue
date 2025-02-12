@@ -46,7 +46,7 @@ const handleInputChange = () => {
 }
 
 function openNewProjectWindow() {
-  loginWin()
+  // loginWin()
 }
 </script>
 <template>
