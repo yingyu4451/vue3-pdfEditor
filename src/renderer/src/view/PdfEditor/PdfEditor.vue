@@ -1,30 +1,31 @@
 <template>
   <div class="common-layout">
     <el-header height="60px">
-      <tool-bar></tool-bar>
+      <tool-bar @extract-text-form-p-d-f="extractTextFormPDF(pdfCurrentPage)"></tool-bar>
+      <button id="upload"></button>
     </el-header>
     <el-container>
       <el-aside v-if="pdfSetting.pdfViewer.leftAsideShow" class="leftAside" width="240px">
-        <LeftAside @scale-change="renderPage" @thumbnailClick="goToPage"></LeftAside>
+        <LeftAside @scale-change="renderPage" @thumbnail-click="goToPage"></LeftAside>
       </el-aside>
       <el-container>
         <el-main>
-          <div id="pdfViewer">
+          <div id="pdfViewer" class="relative" @wheel.passive="pdfWheel">
             <!-- 用于动态创建 canvas 的容器 -->
-            <el-scrollbar id="pdfPageList" ref="pdfPageList" max-height="100vh">
-            <div ref="pdfContainer" class="flex items-center justify-center" @wheel="">
+            <!-- <el-scrollbar max-height="100vh"> -->
+            <div
+              ref="pdfContainer"
+              class="w-max mx-auto relative "
+            >
 
-              </div>
-            </el-scrollbar>
-            <!-- <div class="controls flex items-center justify-center">
-              <div :disabled="currentPage <= 1" @click="prevPage">上一页</div>
-              <span>{{ currentPage }} / {{ totalPages }}</span>
-              <div :disabled="currentPage >= totalPages" @click="nextPage">下一页</div>
-            </div> -->
+          </div>
+            <!-- </el-scrollbar> -->
           </div>
         </el-main>
       </el-container>
-      <el-aside class="rightAside" width="300px">右边框</el-aside>
+      <el-aside v-if="pdfSetting.pdfViewer.rightAsideShow" class="rightAside" width="300px">
+        <RightAside></RightAside>
+      </el-aside>
     </el-container>
   </div>
 </template>
@@ -35,33 +36,60 @@ import * as pdfjsLib from 'pdfjs-dist'
 import pdf from './../../../../../resources/1.pdf'
 import ToolBar from '@renderer/components/ToolBar/ToolBar.vue'
 import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
+import RightAside from '@renderer/components/RightAside/RightAside.vue'
 
 const pdfUrl = pdf
+let pdfDoc = null
 // const pdfCanvas = ref(null)
 const pdfContainer = ref(null)
-const currentPage = ref(1)
-const totalPages = ref(0)
+const pdfCurrentPage = ref(1)
+const pdfTotalPages = ref(0)
 const loading = ref(true)
 const pdfPageList = ref([])
-const thumbnails = ref([])
-const currentKeyDownRef = ref()
+const pdfThumbnails = ref([])
+const pdfText = ref('')
+const pdfPaperContentIndexData = ref({
+  biaoMu: {
+    name: '标目',
+    data: [
+      { pdfPage: 1, content: '第一章内容' },
+      { pdfPage: 2, content: '第一章内容' }
+    ]
+  },
+  kuanMu: {
+    name: '款目',
+    data: [
+      { pdfPage: 1, content: '第一章内容' },
+      { pdfPage: 2, content: '第一章内容' }
+    ]
+  },
+  chuangXin: {
+    name: '创新词汇',
+    data: [
+      { pdfPage: 1, content: '第一章内容' },
+      { pdfPage: 2, content: '第一章内容' }
+    ]
+  }
+})
 const pdfSetting = ref({
   pdfViewer: {
     scale: 100,
     leftAsideShow: true,
     rightAsideShow: true
   },
-  thumbnails: {
+  pdfThumbnails: {
     scale: 0.25
   }
 })
-let pdfDoc = null
+const currentKeyDownRef = ref()
 
 provide('pdfSetting', pdfSetting)
-provide('currentPage', currentPage)
-provide('totalPages', totalPages)
+provide('pdfCurrentPage', pdfCurrentPage)
+provide('pdfTotalPages', pdfTotalPages)
 provide('pdfPageList', pdfPageList)
-provide('thumbnails', thumbnails)
+provide('pdfThumbnails', pdfThumbnails)
+provide('pdfText', pdfText)
+provide('pdfPaperContentIndexData', pdfPaperContentIndexData)
 
 // 检测屏幕大小
 if (window.innerWidth == 1920) {
@@ -73,19 +101,22 @@ if (window.innerWidth == 2560) {
 
 // 检测当前按下的按键
 document.addEventListener('keydown', (event) => {
-  console.log(`按下的键: ${event.key}, 键码: ${event.code}`)
+  // console.log(`按下的键: ${event.key}, 键码: ${event.code}`)
   currentKeyDownRef.value = event.key
 })
-
+document.addEventListener('keyup', (event) => {
+  // console.log(`松开的键: ${event.key}, 键码: ${event.code}`)
+  currentKeyDownRef.value = ''
+})
 // 加载 PDF 文件
 const loadPdf = async () => {
   try {
     const loadingTask = pdfjsLib.getDocument(pdfUrl)
     pdfDoc = await loadingTask.promise
-    totalPages.value = pdfDoc.numPages
+    pdfTotalPages.value = pdfDoc.numPages
     loading.value = false
-    // renderPage(currentPage.value)
-    renderAllPage()
+    renderPage(pdfCurrentPage.value)
+    // renderAllPages()
     createThumbnails()
   } catch (error) {
     console.error('加载 PDF 时出错:', error)
@@ -95,9 +126,6 @@ const loadPdf = async () => {
 // 渲染单页面
 const renderPage = (pageNumber) => {
   pdfDoc.getPage(pageNumber).then((page) => {
-    console.log('pageNumber', pageNumber)
-    console.log('page', page)
-
     const viewport = page.getViewport({
       scale: pdfSetting.value.pdfViewer.scale / 100
     })
@@ -109,10 +137,9 @@ const renderPage = (pageNumber) => {
 
     newCanvas.style.border = '2px solid var(--el-color-success)'
 
-    // 将新创建的 canvas 添加到容器中
     pdfContainer.value.innerHTML = '' // 清除之前的 canvas（可选）
+    // 将新创建的 canvas 添加到容器中
     pdfContainer.value.appendChild(newCanvas)
-
     page
       .render({
         canvasContext: context,
@@ -127,40 +154,76 @@ const renderPage = (pageNumber) => {
   })
 }
 
-// 渲染所有页面模式
-const renderAllPage = async () => {
-  pdfPageList.value = [] // 清空之前的缩略图
+const extractTextFormPDF = async (pageNumber) => {
+  const page = await pdfDoc.getPage(pageNumber)
 
-  for (let pageNum = 1; pageNum <= totalPages.value; pageNum++) {
-    const page = await pdfDoc.getPage(pageNum)
+  const textContent = await page.getTextContent()
+  console.log('textContent', textContent)
+
+  const textItems = textContent.items
+  console.log('textItems', textItems)
+
+  const str = textItems.map((item) => item.str).join('')
+  pdfText.value = str
+
+  textContent.items.forEach((textItem) => {
+    const textDiv = document.createElement('button')
+    textDiv.className ='hover:border-solid hover:border-2 hover:border-indigo-600';
+    textDiv.textContent = textItem.str
+    textDiv.style.position = 'absolute'
     const viewport = page.getViewport({
       scale: pdfSetting.value.pdfViewer.scale / 100
     })
+    // 获取文本位置（transform 矩阵的位移部分）
+    // console.log('textItem.transform',textItem.transform);
 
-    const canvas = document.createElement('canvas')
-    const context = canvas.getContext('2d')
-    canvas.width = viewport.width
-    canvas.height = viewport.height
-    canvas.style.border = '2px solid var(--el-color-success)'
+    const [scaleX, skewY, skewX, scaleY, translateX, translateY] = textItem.transform
 
-    // 将页面渲染到 canvas 上
-    await page.render({
-      canvasContext: context,
-      viewport: viewport
-    }).promise
+    textDiv.style.left = `${translateX * viewport.scale}px`
+    textDiv.style.top = `${(viewport.height - translateY) * viewport.scale}px`
+    textDiv.style.transform = `scale(1,1) skew(0deg, 0deg)`
 
-    // 将 canvas 转为图片，并保存为缩略图
-    pdfPageList.value.push(canvas.toDataURL())
-  }
+    pdfContainer.value.appendChild(textDiv)
+  })
 }
+
+// 渲染所有页面模式
+// const renderAllPages = async () => {
+//   // pdfPageList.value = [] // 清空之前的缩略图
+
+//   for (let pageNum = 1; pageNum <= pdfTotalPages.value; pageNum++) {
+//     const page = await pdfDoc.getPage(pageNum)
+//     const viewport = page.getViewport({
+//       scale: pdfSetting.value.pdfViewer.scale / 100
+//     })
+//     const div = document.createElement('div')
+//     div.style.padding = `30px 0px`
+//     div.id = `page-${pageNum}`
+//     const canvas = document.createElement('canvas')
+//     const context = canvas.getContext('2d')
+//     canvas.width = viewport.width
+//     canvas.height = viewport.height
+//     canvas.style.border = '2px solid var(--el-color-success)'
+//     div.appendChild(canvas)
+//     // 将页面渲染到 canvas 上
+//     await page.render({
+//       canvasContext: context,
+//       viewport: viewport
+//     }).promise
+
+//     pdfContainer.value.appendChild(div)
+//   }
+// }
+
+
 
 // 创建所有页面的缩略图
 const createThumbnails = async () => {
-  thumbnails.value = [] // 清空之前的缩略图
+  pdfThumbnails.value = [] // 清空之前的缩略图
 
-  for (let pageNum = 1; pageNum <= totalPages.value; pageNum++) {
+  for (let pageNum = 1; pageNum <= pdfTotalPages.value; pageNum++) {
     const page = await pdfDoc.getPage(pageNum)
-    const viewport = page.getViewport(pdfSetting.value.thumbnails)
+    const viewport = page.getViewport(pdfSetting.value.pdfThumbnails)
 
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')
@@ -174,22 +237,22 @@ const createThumbnails = async () => {
     }).promise
 
     // 将 canvas 转为图片，并保存为缩略图
-    thumbnails.value.push(canvas.toDataURL())
+    pdfThumbnails.value.push(canvas.toDataURL())
   }
 }
 
 // 下一页
 const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-    renderPage(currentPage.value)
+  if (pdfCurrentPage.value < pdfTotalPages.value) {
+    pdfCurrentPage.value++
+    renderPage(pdfCurrentPage.value)
   }
 }
 // 上一页
 const prevPage = () => {
-  if (currentPage.value <= totalPages.value && currentPage.value != 1) {
-    currentPage.value--
-    renderPage(currentPage.value)
+  if (pdfCurrentPage.value <= pdfTotalPages.value && pdfCurrentPage.value != 1) {
+    pdfCurrentPage.value--
+    renderPage(pdfCurrentPage.value)
   }
 }
 
@@ -202,7 +265,7 @@ const pdfWheel = (event) => {
     } else {
       pdfSetting.value.pdfViewer.scale -= 5
     }
-    renderPage(currentPage.value)
+    renderPage(pdfCurrentPage.value)
   } else {
     if (event.deltaY < 0) {
       nextPage()
@@ -213,11 +276,12 @@ const pdfWheel = (event) => {
 }
 
 const goToPage = (page) => {
-  currentPage.value = page
+  pdfCurrentPage.value = page
   renderPage(page)
 }
 // 监听页码变化并重新渲染
-watch(currentPage, (newPage) => {
+watch(pdfCurrentPage, (newPage) => {
+  // renderPage(newPage)
   renderPage(newPage)
 })
 
@@ -239,11 +303,13 @@ onMounted(() => {
 
 .el-aside.leftAside {
   border-right: 1px solid var(--el-color-success);
-  @apply overflow-clip;
+  @apply overflow-clip ;
 }
+
 .el-aside.rightAside {
   border-left: 1px solid var(--el-color-success);
 }
+
 .common-layout {
   background-color: rgba(240, 249, 235, 0.15) !important;
   height: 100vh;

@@ -10,7 +10,7 @@
     <el-col class="text-center" :span="12" :offset="0">
       <el-button-group>
         <el-button type="success" plain icon="Position" @click="">选择</el-button>
-        <el-button type="success" plain icon="Position" @click="">选择</el-button>
+        <el-button type="success" plain icon="Position" @click="$emit('extractTextFormPDF',1)">识别文本</el-button>
       </el-button-group>
     </el-col>
     <el-col :span="6" :offset="0">

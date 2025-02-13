@@ -3,11 +3,11 @@
     <el-row :gutter="20">
       <el-col :span="14" :offset="0">
         <el-input-number
-          v-model="currentPage"
-          :value="currentPage"
+          v-model="pdfCurrentPage"
+          :value="pdfCurrentPage"
           size="small"
           :min="1"
-          :max="totalPages || 2"
+          :max="pdfTotalPages || 2"
           :step="1"
           :precision="0"
           :controls="false"
@@ -16,7 +16,7 @@
           @change=""
         >
           <template #suffix>
-            <span>页 / {{ totalPages }} 页</span>
+            <span>页 / {{ pdfTotalPages }} 页</span>
           </template>
         </el-input-number>
       </el-col>
@@ -31,7 +31,7 @@
           :precision="0"
           :controls="false"
           data-type="2"
-          @change="$emit('scaleChange', currentPage)"
+          @change="$emit('scaleChange', pdfCurrentPage)"
         >
           <template #suffix>
             <span>%</span>
@@ -43,7 +43,7 @@
   <!-- 渲染所有缩略图 -->
   <el-scrollbar id="pdfPageList" ref="pdfPageList" max-height="100vh">
     <div
-      v-for="(thumbnail, index) in thumbnails"
+      v-for="(thumbnail, index) in pdfThumbnails"
       :key="index"
       class="relative"
       @click="$emit('thumbnailClick', index + 1)"
@@ -58,9 +58,9 @@
 import { inject } from 'vue'
 
 const pdfSetting = inject('pdfSetting')
-const currentPage = inject('currentPage')
-const totalPages = inject('totalPages')
-const thumbnails = inject('thumbnails')
+const pdfCurrentPage = inject('pdfCurrentPage')
+const pdfTotalPages = inject('pdfTotalPages')
+const pdfThumbnails = inject('pdfThumbnails')
 </script>
 
 <style scoped>

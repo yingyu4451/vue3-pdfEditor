@@ -28,6 +28,7 @@
     "electron-updater": "^6.1.7",
     "element-plus": "^2.9.3",
     "pdfjs-dist": "^4.10.38",
+    "tesseract.js": "^6.0.0",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
