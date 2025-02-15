@@ -13,7 +13,7 @@ function selectFile() {
   input.type = 'file'
   // input.accept = '.pdf'
   input.click()
-  input.onchange = function (e) {
+  input.onchange = function () {
     filePath.value = input.value
     console.log('选择的文件：' + input.value)
   }
@@ -28,7 +28,7 @@ function newProject() {
   console.log(JSON.stringify(er))
   const params = new URLSearchParams();
   params.append('data', JSON.stringify(er));
-  axios.get('/api?',{params}).then(res=>{
+  axios.get('/api?',{params}).then(()=>{
     router.back()
   })
 }

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref } from 'vue'
 import er from '../../../../../resources/setting/projects.json'
 import router from '../../router/router'
@@ -30,12 +30,13 @@ function dateData(property, bol) {
   }
 }
 
-function openFile(it,key) {
+function openFile(item,key) {
+  item = null;
   er[key].lastOpenTime = new Date().toLocaleString()
   console.log(er)
   const params = new URLSearchParams();
   params.append('data', JSON.stringify(er));
-  axios.get('/api?',{params}).then(res=>{
+  axios.get('/api?',{params}).then(()=>{
 
   })
   router.push('/pdf')

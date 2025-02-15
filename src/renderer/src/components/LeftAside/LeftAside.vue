@@ -13,7 +13,7 @@
           :controls="false"
           class=""
           data-type="1"
-          @change=""
+
         >
           <template #suffix>
             <span>页 / {{ pdfTotalPages }} 页</span>
@@ -54,8 +54,9 @@
   </el-scrollbar>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { inject } from 'vue'
+
 
 const pdfSetting = inject('pdfSetting')
 const pdfCurrentPage = inject('pdfCurrentPage')

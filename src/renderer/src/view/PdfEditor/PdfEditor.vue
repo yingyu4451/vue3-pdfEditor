@@ -29,28 +29,12 @@
 import { ref, onMounted, watch, provide } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
 import pdf from './../../../../../resources/1.pdf?asset'
-import '../../assets/Tesseract/worker.min.js?worker'
-import '../../assets/Tesseract/tesseract-core.wasm.js?loader'
-import '../../assets/Tesseract/tesseract-core-lstm.wasm.js?loader'
-import '../../assets/Tesseract/tesseract-core-simd.wasm.js?loader'
-import '../../assets/Tesseract/tesseract-core-simd-lstm.wasm.js?loader'
-import '../../assets/Tesseract/lang/chi_sim_vert.traineddata.gz'
 // import '../../../../../resources/Tesseract/worker.min.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core.wasm.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core-simd.wasm.js?asset'
 import ToolBar from '@renderer/components/ToolBar/ToolBar.vue'
 import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
 import RightAside from '@renderer/components/RightAside/RightAside.vue'
-import tesseract from 'tesseract.js'
-
-const { createWorker } = tesseract;
-
-const tesseractWorker = await createWorker({
-  corePath: '/src/assets/Tesseract',
-  langPath: '/src/assets/Tesseract/lang',
-  workerPath: '/src/assets/Tesseract/worker.min.js',
-  workerBlobURL:true,
-})
 
 
 const pdfUrl = pdf
@@ -170,7 +154,7 @@ const renderPage = (pageNumber) => {
 }
 
 const extractTextFormPDF = async (pageNumber) => {
-  if (pdfText.value == null) {
+  if (pdfText.value == null || pdfText.value == '') {
     const page = await pdfDoc.getPage(pageNumber)
 
     const textContent = await page.getTextContent()
@@ -302,9 +286,9 @@ const pdfWheel = (event) => {
     renderPage(pdfCurrentPage.value)
   } else {
     if (event.deltaY < 0) {
-      prevPage()
-    } else {
       nextPage()
+    } else {
+      prevPage()
     }
   }
 }
@@ -321,6 +305,7 @@ watch(pdfCurrentPage, (newPage) => {
 
 onMounted(() => {
   loadPdf()
+
 })
 </script>
 

@@ -1,5 +1,5 @@
 <template>
-  <el-collapse :accordion="false" @change="">
+  <el-collapse :accordion="false" >
     <el-collapse-item
       v-for="(item, index) in pdfPaperContentIndexData"
       :key="index"
@@ -15,7 +15,7 @@
   </el-collapse>
 </template>
 
-<script setup lang="ts">
+<script setup >
 import { inject } from 'vue'
 
 const pdfPaperContentIndexData = inject('pdfPaperContentIndexData')

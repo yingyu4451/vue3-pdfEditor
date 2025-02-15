@@ -22,7 +22,7 @@
   </el-row>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { inject } from 'vue'
 
 const pdfSetting = inject('pdfSetting')
