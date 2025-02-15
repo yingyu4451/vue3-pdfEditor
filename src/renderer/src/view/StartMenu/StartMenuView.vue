@@ -2,13 +2,14 @@
 import { onMounted, ref } from 'vue'
 import er from '../../../../../resources/setting/projects.json'
 import router from '../../router/router'
-import { loginWin } from '../../windows/action.js'
+import axios from 'axios'
 
 const projects = ref()
 
 onMounted(() => {
   load()
 })
+
 function load() {
   projects.value = er.sort(dateData('lastOpenTime', false))
   console.log(projects)
@@ -29,7 +30,14 @@ function dateData(property, bol) {
   }
 }
 
-function openFile() {
+function openFile(it,key) {
+  er[key].lastOpenTime = new Date().toLocaleString()
+  console.log(er)
+  const params = new URLSearchParams();
+  params.append('data', JSON.stringify(er));
+  axios.get('/api?',{params}).then(res=>{
+
+  })
   router.push('/pdf')
 }
 // 搜集输入框数据
@@ -46,7 +54,10 @@ const handleInputChange = () => {
 }
 
 function openNewProjectWindow() {
-  // loginWin()
+  router.push('/newProjectWindow')
+}
+function openChoose(){
+
 }
 </script>
 <template>
@@ -60,24 +71,37 @@ function openNewProjectWindow() {
         @input="handleInputChange"
       />
       <el-button class="topBtn" @click="openNewProjectWindow">新建项目</el-button>
-      <el-button class="topBtn">打开</el-button>
+<!--      <el-button class="topBtn">打开</el-button>-->
     </div>
     <div class="body">
-      <div v-for="(item, key) in projects" :key class="bodyList" @dblclick="openFile">
-        <ul>
-          <li>
-            <span :key style="user-select: none">{{ item.projectName }}</span>
-          </li>
-          <li>
-            <span style="user-select: none">{{ item.path }}</span>
-          </li>
-        </ul>
+      <div v-for="(item, key) in projects" :key class="bodyList" @dblclick="openFile(item, key)">
+        <div style="padding: 5px">
+          <ul>
+            <li>
+              <span :key style="user-select: none">{{ item.projectName }}</span>
+            </li>
+            <li>
+              <span style="user-select: none">{{ item.path }}</span>
+            </li>
+          </ul>
+          <div style="position: absolute; right: 20px; margin-top: -35px" class="omitDiv">
+            <el-popover popper-class="pop" placement="bottom" width="200" trigger="click">
+              <div>666</div>
+              <template #reference>
+                <i class="omit" @click="openChoose"></i>
+              </template>
+            </el-popover>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="footer"></div>
+    <div class="footer">
+
+    </div>
   </div>
 </template>
 <style scoped>
+
 .body {
   margin-left: 10px;
 }
@@ -86,10 +110,32 @@ function openNewProjectWindow() {
   color: white;
   padding: 4px;
   margin: 4px;
+
 }
 .bodyList :hover {
   background-color: #314549;
   border-radius: 5px;
+}
+.bodyList :hover .omit {
+  background-image: url('../../../../../resources/png/StartMenuView/omit.png');
+  background-size: 18px;
+  display: inline-block;
+  height: 20px;
+  width: 20px;
+  background-repeat: no-repeat;
+  position: relative;
+
+  top: 3px;
+  z-index: 2;
+}
+
+.omitDiv:active{
+
+  border-radius: 3px;
+  background-color: #425b67;
+}
+.omit:active{
+  background-color: #425b67;
 }
 .all {
   background-color: #263238;
@@ -98,7 +144,7 @@ function openNewProjectWindow() {
   height: 100vh;
 }
 .topSelect {
-  width: 50%;
+  width: 80%;
   margin: 10px;
   background: #263238;
   border-radius: 5px;
@@ -107,9 +153,11 @@ function openNewProjectWindow() {
 }
 .topSelect:focus {
   outline: 2px solid #009688;
+  color: white;
 }
 
 .topBtn {
+  margin-left: 10px;
   background-color: #2e3c43;
   color: #607d8b;
   border: 1px solid #2e3c43;
@@ -120,5 +168,10 @@ function openNewProjectWindow() {
   background: #384e54;
   border-color: #384e54;
   color: white;
+}
+
+.el-popper.is-light.el-popover.pop {
+  background-color: red !important;
+  border-color: #146ebd !important;
 }
 </style>
