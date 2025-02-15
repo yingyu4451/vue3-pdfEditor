@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Pdf from '../view/PdfEditor/PdfEditor.vue'
 import start from '../view/StartMenu/StartMenuView.vue'
-
+import test from '@renderer/view/test/test.vue'
 
 const routes = [
   {
@@ -12,6 +12,11 @@ const routes = [
     path: '/pdf',
     name: 'pdf',
     component: Pdf
+  },
+  {
+    path: '/test',
+    name: 'test',
+    component: test
   }
 ]
 

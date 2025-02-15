@@ -13,12 +13,7 @@
           <div id="pdfViewer" class="relative" @wheel.passive="pdfWheel">
             <!-- 用于动态创建 canvas 的容器 -->
             <!-- <el-scrollbar max-height="100vh"> -->
-            <div
-              ref="pdfContainer"
-              class="w-max mx-auto relative "
-            >
-
-          </div>
+            <div ref="pdfContainer" class="w-max mx-auto relative"></div>
             <!-- </el-scrollbar> -->
           </div>
         </el-main>
@@ -33,10 +28,30 @@
 <script setup>
 import { ref, onMounted, watch, provide } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
-import pdf from './../../../../../resources/1.pdf'
+import pdf from './../../../../../resources/1.pdf?asset'
+import '../../assets/Tesseract/worker.min.js?worker'
+import '../../assets/Tesseract/tesseract-core.wasm.js?loader'
+import '../../assets/Tesseract/tesseract-core-lstm.wasm.js?loader'
+import '../../assets/Tesseract/tesseract-core-simd.wasm.js?loader'
+import '../../assets/Tesseract/tesseract-core-simd-lstm.wasm.js?loader'
+import '../../assets/Tesseract/lang/chi_sim_vert.traineddata.gz'
+// import '../../../../../resources/Tesseract/worker.min.js?asset'
+// import '../../../../../resources/Tesseract/tesseract-core.wasm.js?asset'
+// import '../../../../../resources/Tesseract/tesseract-core-simd.wasm.js?asset'
 import ToolBar from '@renderer/components/ToolBar/ToolBar.vue'
 import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
 import RightAside from '@renderer/components/RightAside/RightAside.vue'
+import tesseract from 'tesseract.js'
+
+const { createWorker } = tesseract;
+
+const tesseractWorker = await createWorker({
+  corePath: '/src/assets/Tesseract',
+  langPath: '/src/assets/Tesseract/lang',
+  workerPath: '/src/assets/Tesseract/worker.min.js',
+  workerBlobURL:true,
+})
+
 
 const pdfUrl = pdf
 let pdfDoc = null
@@ -155,36 +170,39 @@ const renderPage = (pageNumber) => {
 }
 
 const extractTextFormPDF = async (pageNumber) => {
-  const page = await pdfDoc.getPage(pageNumber)
+  if (pdfText.value == null) {
+    const page = await pdfDoc.getPage(pageNumber)
 
-  const textContent = await page.getTextContent()
-  console.log('textContent', textContent)
+    const textContent = await page.getTextContent()
+    console.log('textContent', textContent)
 
-  const textItems = textContent.items
-  console.log('textItems', textItems)
+    const textItems = textContent.items
+    console.log('textItems', textItems)
 
-  const str = textItems.map((item) => item.str).join('')
-  pdfText.value = str
+    const str = textItems.map((item) => item.str).join('')
+    pdfText.value = str
 
-  textContent.items.forEach((textItem) => {
-    const textDiv = document.createElement('button')
-    textDiv.className ='hover:border-solid hover:border-2 hover:border-indigo-600';
-    textDiv.textContent = textItem.str
-    textDiv.style.position = 'absolute'
-    const viewport = page.getViewport({
-      scale: pdfSetting.value.pdfViewer.scale / 100
+    textContent.items.forEach((textItem) => {
+      const textDiv = document.createElement('button')
+      textDiv.textContent = textItem.str
+      textDiv.style.position = 'absolute'
+      textDiv.className = 'bg-lime-500 bg-opacity-50 p-1 hover:bg-opacity-100'
+      const viewport = page.getViewport({
+        scale: pdfSetting.value.pdfViewer.scale / 100
+      })
+      // 获取文本位置（transform 矩阵的位移部分）
+      // console.log('textItem.transform',textItem.transform);
+
+      const [scaleX, skewY, skewX, scaleY, translateX, translateY] = textItem.transform
+      console.log(viewport.height)
+
+      textDiv.style.left = `${translateX * viewport.scale}px`
+      textDiv.style.top = `${viewport.height - translateY * viewport.scale}px`
+      // textDiv.style.transform = `scale(${viewport.scale},${viewport.scale}) skew(0deg, 0deg)`
+
+      pdfContainer.value.appendChild(textDiv)
     })
-    // 获取文本位置（transform 矩阵的位移部分）
-    // console.log('textItem.transform',textItem.transform);
-
-    const [scaleX, skewY, skewX, scaleY, translateX, translateY] = textItem.transform
-
-    textDiv.style.left = `${translateX * viewport.scale}px`
-    textDiv.style.top = `${(viewport.height - translateY) * viewport.scale}px`
-    textDiv.style.transform = `scale(1,1) skew(0deg, 0deg)`
-
-    pdfContainer.value.appendChild(textDiv)
-  })
+  }
 }
 
 // 渲染所有页面模式
@@ -215,8 +233,6 @@ const extractTextFormPDF = async (pageNumber) => {
 //   }
 // }
 
-
-
 // 创建所有页面的缩略图
 const createThumbnails = async () => {
   pdfThumbnails.value = [] // 清空之前的缩略图
@@ -238,6 +254,24 @@ const createThumbnails = async () => {
 
     // 将 canvas 转为图片，并保存为缩略图
     pdfThumbnails.value.push(canvas.toDataURL())
+  }
+  for (let pageNum = 1; pageNum <= pdfTotalPages.value; pageNum++) {
+    const page = await pdfDoc.getPage(pageNum)
+    const viewport = page.getViewport(pdfSetting.value.pdfViewer.scale)
+
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+    canvas.width = viewport.width
+    canvas.height = viewport.height
+
+    // 将页面渲染到 canvas 上
+    await page.render({
+      canvasContext: context,
+      viewport: viewport
+    }).promise
+
+    // 将 canvas 转为图片，并保存为缩略图
+    pdfPageList.value.push(canvas.toDataURL())
   }
 }
 
@@ -268,9 +302,9 @@ const pdfWheel = (event) => {
     renderPage(pdfCurrentPage.value)
   } else {
     if (event.deltaY < 0) {
-      nextPage()
-    } else {
       prevPage()
+    } else {
+      nextPage()
     }
   }
 }
@@ -303,7 +337,7 @@ onMounted(() => {
 
 .el-aside.leftAside {
   border-right: 1px solid var(--el-color-success);
-  @apply overflow-clip ;
+  @apply overflow-clip;
 }
 
 .el-aside.rightAside {

@@ -51,6 +51,7 @@ function openNewProjectWindow() {
 </script>
 <template>
   <div class="all">
+    <router-link to="/test"></router-link>
     <div class="top">
       <input
         v-model="inpval"
