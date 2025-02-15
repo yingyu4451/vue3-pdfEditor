@@ -6,11 +6,13 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 
-process.env.ROOT = join(__dirname, '../../')
+process.env.ROOT = join(__dirname, '../view/StartMenu/StartMenuView.vue')
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 // const winURL = isDevelopment ? 'http://localhost:3000/' : join(__dirname, 'dist/index.html')
-const winURL = isDevelopment ? process.env.VITE_DEV_SERVER_URL : join(process.env.ROOT, 'dist/index.html')
+const winURL = isDevelopment
+  ? process.env.VITE_DEV_SERVER_URL
+  : join(process.env.ROOT, 'dist/index.html')
 
 // 配置参数
 const defaultConfig = {
@@ -209,7 +211,7 @@ class MultiWindows {
       // wins.close()
       this.closeAllWin()
     })
-    ipcMain.on('win-create', (event, args) => this.createWin(args))
+    ipcMain.on('win-create', (event, args) => alert(111))
 
     // ...
   }
