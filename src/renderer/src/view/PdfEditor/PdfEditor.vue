@@ -6,15 +6,15 @@
     </el-header>
     <el-container>
       <el-aside v-if="pdfSetting.pdfViewer.leftAsideShow" class="leftAside" width="240px">
-        <LeftAside @scale-change="renderPage" @thumbnail-click="goToPage"></LeftAside>
+        <LeftAside @scale-change="renderAllPages" @thumbnail-click="scrollpage"></LeftAside>
       </el-aside>
       <el-container>
         <el-main>
-          <div id="pdfViewer" class="relative" @wheel.passive="pdfWheel">
+          <div id="pdfViewer" class="relative" @wheel="pdfWheel">
             <!-- 用于动态创建 canvas 的容器 -->
-            <!-- <el-scrollbar max-height="100vh"> -->
+            <el-scrollbar max-height="100vh">
             <div ref="pdfContainer" class="w-max mx-auto relative"></div>
-            <!-- </el-scrollbar> -->
+            </el-scrollbar>
           </div>
         </el-main>
       </el-container>
@@ -35,7 +35,6 @@ import pdf from './../../../../../resources/1.pdf?asset'
 import ToolBar from '@renderer/components/ToolBar/ToolBar.vue'
 import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
 import RightAside from '@renderer/components/RightAside/RightAside.vue'
-
 
 const pdfUrl = pdf
 let pdfDoc = null
@@ -114,42 +113,50 @@ const loadPdf = async () => {
     pdfDoc = await loadingTask.promise
     pdfTotalPages.value = pdfDoc.numPages
     loading.value = false
-    renderPage(pdfCurrentPage.value)
-    // renderAllPages()
+    // renderPage(pdfCurrentPage.value)
+    renderAllPages()
     createThumbnails()
   } catch (error) {
     console.error('加载 PDF 时出错:', error)
   }
 }
 
-// 渲染单页面
-const renderPage = (pageNumber) => {
-  pdfDoc.getPage(pageNumber).then((page) => {
-    const viewport = page.getViewport({
-      scale: pdfSetting.value.pdfViewer.scale / 100
-    })
+// // 渲染单页面
+// const renderPage = async () => {
+//   for (let pageNum = 1; pageNum <= pdfTotalPages.value; pageNum++) {
+//     await pdfDoc.getPage(pageNum).then((page) => {
+//       const viewport = page.getViewport({
+//         scale: pdfSetting.value.pdfViewer.scale / 100
+//       })
 
-    const newCanvas = document.createElement('canvas')
-    const context = newCanvas.getContext('2d')
-    newCanvas.width = viewport.width
-    newCanvas.height = viewport.height
+//       const newCanvas = document.createElement('canvas')
+//       const context = newCanvas.getContext('2d')
+//       newCanvas.width = viewport.width
+//       newCanvas.height = viewport.height
 
-    newCanvas.style.border = '2px solid var(--el-color-success)'
+//       newCanvas.style.border = '2px solid var(--el-color-success)'
+//       // 将新创建的 canvas 添加到容器中
+//       pdfContainer.value.appendChild(newCanvas)
+//        page
+//         .render({
+//           canvasContext: context,
+//           viewport: viewport
+//         })
+//         .promise.then(() => {
+//           // 当前页渲染完成
+//         })
+//         .catch((error) => {
+//           console.error('渲染页面时出错:', error)
+//         })
+//     })
+//   }
+// }
 
-    pdfContainer.value.innerHTML = '' // 清除之前的 canvas（可选）
-    // 将新创建的 canvas 添加到容器中
-    pdfContainer.value.appendChild(newCanvas)
-    page
-      .render({
-        canvasContext: context,
-        viewport: viewport
-      })
-      .promise.then(() => {
-        // 当前页渲染完成
-      })
-      .catch((error) => {
-        console.error('渲染页面时出错:', error)
-      })
+const scrollpage = (page) => {
+  const pageElement = document.getElementById(`page-${page}`)
+  pageElement.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
   })
 }
 
@@ -169,6 +176,7 @@ const extractTextFormPDF = async (pageNumber) => {
     textContent.items.forEach((textItem) => {
       const textDiv = document.createElement('button')
       textDiv.textContent = textItem.str
+      textDiv.style.color = 'rgba(0,0,0,0)'
       textDiv.style.position = 'absolute'
       textDiv.className = 'bg-lime-500 bg-opacity-50 p-1 hover:bg-opacity-100'
       const viewport = page.getViewport({
@@ -190,32 +198,32 @@ const extractTextFormPDF = async (pageNumber) => {
 }
 
 // 渲染所有页面模式
-// const renderAllPages = async () => {
-//   // pdfPageList.value = [] // 清空之前的缩略图
+const renderAllPages = async () => {
+  pdfContainer.value.innerHTML = '' // 清空之前的页面
 
-//   for (let pageNum = 1; pageNum <= pdfTotalPages.value; pageNum++) {
-//     const page = await pdfDoc.getPage(pageNum)
-//     const viewport = page.getViewport({
-//       scale: pdfSetting.value.pdfViewer.scale / 100
-//     })
-//     const div = document.createElement('div')
-//     div.style.padding = `30px 0px`
-//     div.id = `page-${pageNum}`
-//     const canvas = document.createElement('canvas')
-//     const context = canvas.getContext('2d')
-//     canvas.width = viewport.width
-//     canvas.height = viewport.height
-//     canvas.style.border = '2px solid var(--el-color-success)'
-//     div.appendChild(canvas)
-//     // 将页面渲染到 canvas 上
-//     await page.render({
-//       canvasContext: context,
-//       viewport: viewport
-//     }).promise
+  for (let pageNum = 1; pageNum <= pdfTotalPages.value; pageNum++) {
+    const page = await pdfDoc.getPage(pageNum)
+    const viewport = page.getViewport({
+      scale: pdfSetting.value.pdfViewer.scale / 100
+    })
+    const div = document.createElement('div')
+    div.style.padding = `30px 0px`
+    div.id = `page-${pageNum}`
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+    canvas.width = viewport.width
+    canvas.height = viewport.height
+    canvas.style.border = '2px solid var(--el-color-success)'
+    div.appendChild(canvas)
+    // 将页面渲染到 canvas 上
+    await page.render({
+      canvasContext: context,
+      viewport: viewport
+    }).promise
 
-//     pdfContainer.value.appendChild(div)
-//   }
-// }
+    pdfContainer.value.appendChild(div)
+  }
+}
 
 // 创建所有页面的缩略图
 const createThumbnails = async () => {
@@ -274,29 +282,23 @@ const prevPage = () => {
   }
 }
 
-const pdfWheel = (event) => {
-  event.preventDefault()
+// const pdfWheel = (event) => {
 
-  if (currentKeyDownRef.value === 'Control') {
-    if (event.deltaY < 0) {
-      pdfSetting.value.pdfViewer.scale += 5
-    } else {
-      pdfSetting.value.pdfViewer.scale -= 5
-    }
-    renderPage(pdfCurrentPage.value)
-  } else {
-    if (event.deltaY < 0) {
-      nextPage()
-    } else {
-      prevPage()
-    }
-  }
-}
+//   if (currentKeyDownRef.value === 'Control') {
+//     if (event.deltaY < 0) {
+//       pdfSetting.value.pdfViewer.scale += 5
+//       renderAllPages()
+//     } else {
+//       pdfSetting.value.pdfViewer.scale -= 5
+//       renderAllPages()
+//     }
+//   }
+// }
 
-const goToPage = (page) => {
-  pdfCurrentPage.value = page
-  renderPage(page)
-}
+// const goToPage = (page) => {
+//   pdfCurrentPage.value = page
+//   renderAllPages(page)
+// }
 // 监听页码变化并重新渲染
 watch(pdfCurrentPage, (newPage) => {
   // renderPage(newPage)
@@ -305,7 +307,6 @@ watch(pdfCurrentPage, (newPage) => {
 
 onMounted(() => {
   loadPdf()
-
 })
 </script>
 

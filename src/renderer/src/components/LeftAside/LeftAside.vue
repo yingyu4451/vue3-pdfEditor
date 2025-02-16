@@ -13,7 +13,7 @@
           :controls="false"
           class=""
           data-type="1"
-
+          @change="$emit('pageChange', pdfCurrentPage)"
         >
           <template #suffix>
             <span>页 / {{ pdfTotalPages }} 页</span>
@@ -42,12 +42,7 @@
   </div>
   <!-- 渲染所有缩略图 -->
   <el-scrollbar id="pdfPageList" ref="pdfPageList" max-height="100vh">
-    <div
-      v-for="(thumbnail, index) in pdfThumbnails"
-      :key="index"
-      class="relative"
-      @click="$emit('thumbnailClick', index + 1)"
-    >
+    <div v-for="(thumbnail, index) in pdfThumbnails" :key="index" class="relative" @click="$emit('thumbnailClick', (index+1))">
       <img class="mx-auto" :src="thumbnail" :alt="'Page ' + (index + 1)" />
       <span class="absolute top-0 w-6 h-6 text-center">{{ index + 1 }}</span>
     </div>
@@ -56,7 +51,6 @@
 
 <script setup>
 import { inject } from 'vue'
-
 
 const pdfSetting = inject('pdfSetting')
 const pdfCurrentPage = inject('pdfCurrentPage')
@@ -70,7 +64,7 @@ const pdfThumbnails = inject('pdfThumbnails')
   @apply py-2 px-3;
 }
 #pdfPageList {
-  @apply p-1 h-full ;
+  @apply p-1 h-full;
   div {
     @apply py-5 cursor-pointer ease-in-out transition-all duration-100;
     @apply hover:bg-lime-300 hover:bg-opacity-50;
