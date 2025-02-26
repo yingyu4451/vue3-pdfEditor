@@ -4,6 +4,7 @@ import er from '../../../../../resources/setting/projects.json'
 import router from '../../router/router'
 import axios from 'axios'
 
+const dialogVisible = ref(false)
 const projects = ref()
 
 onMounted(() => {
@@ -36,10 +37,11 @@ function openFile(item,key) {
   console.log(er)
   const params = new URLSearchParams();
   params.append('data', JSON.stringify(er));
-  axios.get('/api?',{params}).then(()=>{
-
-  })
   router.push('/pdf')
+  // axios.get('/api?',{params}).then(()=>{
+  //
+  // })
+
 }
 // 搜集输入框数据
 const inpval = ref('')
@@ -54,11 +56,16 @@ const handleInputChange = () => {
   }
 }
 
-function openNewProjectWindow() {
-  router.push('/newProjectWindow')
+function openNewProjectWindow(flag) {
+
+  router.push('/newProjectWindow/?flag=' + flag)
 }
 function openChoose(){
 
+}
+function opEdit(item, key) {
+  console.log(item.settingPath)
+  router.push('/newProjectWindow/?flag=' + false + '&&setting=' + item.settingPath + '&&key=' + key)
 }
 </script>
 <template>
@@ -71,23 +78,25 @@ function openChoose(){
         placeholder="请输入内容"
         @input="handleInputChange"
       />
-      <el-button class="topBtn" @click="openNewProjectWindow">新建项目</el-button>
-<!--      <el-button class="topBtn">打开</el-button>-->
+      <el-button class="topBtn" @click="openNewProjectWindow(true)">新建项目</el-button>
+      <el-button class="topBtn" @click="openNewProjectWindow(false)">导入</el-button>
     </div>
     <div class="body">
       <div v-for="(item, key) in projects" :key class="bodyList" @dblclick="openFile(item, key)">
         <div style="padding: 5px">
           <ul>
             <li>
-              <span :key style="user-select: none">{{ item.projectName }}</span>
+              项目名称:  <span :key style="user-select: none">{{ item.projectName }}</span>
             </li>
             <li>
-              <span style="user-select: none">{{ item.path }}</span>
+              文件地址:  <span style="user-select: none">{{ item.path }}</span>
+               <span style="user-select: none;position: absolute;right: 45px">最新编辑时间:{{ item.lastOpenTime }}</span>
             </li>
+
           </ul>
           <div style="position: absolute; right: 20px; margin-top: -35px" class="omitDiv">
-            <el-popover popper-class="pop" placement="bottom" width="200" trigger="click">
-              <div>666</div>
+            <el-popover popper-class="pop" placement="bottom" trigger="click">
+              <div><el-button style="width: 130px" @click="opEdit(item, key)">编辑</el-button></div>
               <template #reference>
                 <i class="omit" @click="openChoose"></i>
               </template>
@@ -96,12 +105,12 @@ function openChoose(){
         </div>
       </div>
     </div>
-    <div class="footer">
+    <div class="footer"></div>
 
-    </div>
   </div>
 </template>
 <style scoped>
+
 
 .body {
   margin-left: 10px;
@@ -145,7 +154,7 @@ function openChoose(){
   height: 100vh;
 }
 .topSelect {
-  width: 80%;
+  width: 70%;
   margin: 10px;
   background: #263238;
   border-radius: 5px;
@@ -171,8 +180,4 @@ function openChoose(){
   color: white;
 }
 
-.el-popper.is-light.el-popover.pop {
-  background-color: red !important;
-  border-color: #146ebd !important;
-}
 </style>
