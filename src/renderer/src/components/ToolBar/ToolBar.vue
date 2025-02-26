@@ -1,22 +1,27 @@
 <template>
   <el-row :gutter="20">
-    <el-col :span="6" :offset="0">
+    <el-col :span="7" :offset="0">
+      <el-button-group> </el-button-group>
+    </el-col>
+    <el-col class="text-center" :span="10" :offset="0">
       <el-button-group>
         <el-button type="success" plain icon="" @click="thumbnailsShow">缩略图</el-button>
-        <el-button type="success" plain icon="Back" @click="">撤销</el-button>
-        <el-button type="success" plain icon="Right" @click="">恢复</el-button>
+        <el-button
+        v-model="pdfSetting.autoHighlight"
+        type="success"
+        active-text="自动高亮"
+        tag="el-switch"
+        plain
+        style="--el-switch-on-color: #13ce66"
+        >自动高亮</el-button
+        >
+        <el-button type="success" plain icon="" @click="">保存</el-button>
+        <el-button type="success" plain icon="">导出文档</el-button>
       </el-button-group>
     </el-col>
-    <el-col class="text-center" :span="12" :offset="0">
+    <el-col :span="7" :offset="0">
       <el-button-group>
-        <el-button type="success" plain icon="Position" @click="">选择</el-button>
-        <el-button type="success" plain icon="Position" @click="$emit('extractTextFormPDF',1)">识别文本</el-button>
-      </el-button-group>
-    </el-col>
-    <el-col :span="6" :offset="0">
-      <el-button-group>
-        <el-button type="success" plain icon="Position" @click="">新建标目</el-button>
-        <el-button type="success" plain icon="Plus" @click="">标目列表</el-button>
+
       </el-button-group>
     </el-col>
   </el-row>
@@ -32,4 +37,10 @@ const thumbnailsShow = () => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.el-switch__label.is-active {
+  span {
+    color: var(--el-color-success) !important;
+  }
+}
+</style>

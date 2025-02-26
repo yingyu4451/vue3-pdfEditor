@@ -1,24 +1,39 @@
 <template>
   <div class="common-layout">
-    <el-header height="60px">
-      <tool-bar @extract-text-form-p-d-f="extractTextFormPDF(pdfCurrentPage)"></tool-bar>
-      <button id="upload"></button>
-    </el-header>
     <el-container>
       <el-aside v-if="pdfSetting.pdfViewer.leftAsideShow" class="leftAside" width="240px">
-        <LeftAside @scale-change="renderAllPages" @thumbnail-click="scrollpage"></LeftAside>
+        <LeftAside></LeftAside>
       </el-aside>
       <el-container>
+        <el-header class="sticky" height="50.5px">
+          <tool-bar @extract-text-form-p-d-f="extractTextFormPDF"></tool-bar>
+        </el-header>
         <el-main>
           <div id="pdfViewer" class="relative" @wheel="pdfWheel">
-            <!-- 用于动态创建 canvas 的容器 -->
-            <el-scrollbar max-height="100vh">
-            <div ref="pdfContainer" class="w-max mx-auto relative"></div>
+            <el-scrollbar ref="pdfContainerScroll" max-height="100vh">
+              <!-- 添加按钮 -->
+              <el-dropdown style="display: none" @command="addIndexItem">
+                <el-button size="small" type="success">
+                  菜单<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-for="(item, index) in pdfSetting.dropDownMenu"
+                      :key="index"
+                      :command="index"
+                      >{{ item.title }}</el-dropdown-item
+                    >
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+              <!-- 用于动态创建 canvas 的容器 -->
+              <div ref="pdfContainer" class="w-max mx-auto relative"></div>
             </el-scrollbar>
           </div>
         </el-main>
       </el-container>
-      <el-aside v-if="pdfSetting.pdfViewer.rightAsideShow" class="rightAside" width="300px">
+      <el-aside v-if="pdfSetting.pdfViewer.rightAsideShow" class="rightAside" width="320px">
         <RightAside></RightAside>
       </el-aside>
     </el-container>
@@ -43,33 +58,37 @@ const pdfContainer = ref(null)
 const pdfCurrentPage = ref(1)
 const pdfTotalPages = ref(0)
 const loading = ref(true)
+const pdfSelectionText = ref()
+const pdfSelectionPage = ref()
 const pdfPageList = ref([])
 const pdfThumbnails = ref([])
+const pdfIndexTable = ref([])
 const pdfText = ref('')
-const pdfPaperContentIndexData = ref({
-  biaoMu: {
-    name: '标目',
-    data: [
-      { pdfPage: 1, content: '第一章内容' },
-      { pdfPage: 2, content: '第一章内容' }
-    ]
-  },
-  kuanMu: {
-    name: '款目',
-    data: [
-      { pdfPage: 1, content: '第一章内容' },
-      { pdfPage: 2, content: '第一章内容' }
-    ]
-  },
-  chuangXin: {
-    name: '创新词汇',
-    data: [
-      { pdfPage: 1, content: '第一章内容' },
-      { pdfPage: 2, content: '第一章内容' }
-    ]
-  }
+const pdfContainerScroll = ref()
+const pdfIndexData = ref({
+  indexData: [
+    {
+      name: 'biaoMu',
+      id: 1,
+      title: '标目',
+      data: []
+    },
+    {
+      id: 1,
+      name: 'chuangXin',
+      title: '创新词汇',
+      data: []
+    }
+  ]
 })
+
 const pdfSetting = ref({
+  dropDownMenu: [
+    { title: '添加标目', command: 'biaoMu' },
+    { title: '添加创新词汇', command: 'chuangXin' }
+    // { title: '添加款目', command: 'addIndexItem()' },
+  ],
+  autoHighlight: true,
   pdfViewer: {
     scale: 100,
     leftAsideShow: true,
@@ -87,12 +106,13 @@ provide('pdfTotalPages', pdfTotalPages)
 provide('pdfPageList', pdfPageList)
 provide('pdfThumbnails', pdfThumbnails)
 provide('pdfText', pdfText)
-provide('pdfPaperContentIndexData', pdfPaperContentIndexData)
-
+provide('pdfIndexData', pdfIndexData)
+provide('pdfIndexTable', pdfIndexTable)
 // 检测屏幕大小
 if (window.innerWidth == 1920) {
   pdfSetting.value.pdfViewer.scale = 100
 }
+
 if (window.innerWidth == 2560) {
   pdfSetting.value.pdfViewer.scale = 145
 }
@@ -106,6 +126,45 @@ document.addEventListener('keyup', (event) => {
   // console.log(`松开的键: ${event.key}, 键码: ${event.code}`)
   currentKeyDownRef.value = ''
 })
+
+document.addEventListener('mouseup', (event) => {
+  const addMenu = document.querySelector('.el-dropdown')
+  addMenu.style.zIndex = '9999'
+  addMenu.style.position = 'absolute'
+
+  const eventElementParentParentMarginStyle = window.getComputedStyle(
+    event.target.parentElement.parentElement
+  )
+
+  if (
+    window.getSelection().toString().trim() !== '' &&
+    event.target.parentElement.id.includes('page')
+  ) {
+    pdfSelectionText.value = document.getSelection().toString()
+    pdfSelectionPage.value = document
+      .getSelection()
+      .focusNode.parentElement.attributes.getNamedItem('data-page').value
+
+    addMenu.style.top = `${event.clientY - 70}px`
+    addMenu.style.left = `${event.clientX - parseFloat(eventElementParentParentMarginStyle.marginLeft)}px`
+    addMenu.style.display = 'block'
+  } else {
+    addMenu.style.display = 'none'
+  }
+})
+
+// document.addEventListener('mouseover', (event) => {
+//   console.log(event);
+//   mouseOverElement.value = event.target.
+// })
+document.addEventListener('mousemove', (event) => {
+  // 视口坐标
+  // // 页面坐标
+  // const pagePosition = `(${event.pageX}, ${event.pageY})`
+  // // 屏幕坐标
+  // const screenPosition = `(${event.screenX}, ${event.screenY})`
+})
+
 // 加载 PDF 文件
 const loadPdf = async () => {
   try {
@@ -114,8 +173,9 @@ const loadPdf = async () => {
     pdfTotalPages.value = pdfDoc.numPages
     loading.value = false
     // renderPage(pdfCurrentPage.value)
-    renderAllPages()
+    await renderAllPages()
     createThumbnails()
+    extractTextFormPDF()
   } catch (error) {
     console.error('加载 PDF 时出错:', error)
   }
@@ -154,46 +214,58 @@ const loadPdf = async () => {
 
 const scrollpage = (page) => {
   const pageElement = document.getElementById(`page-${page}`)
-  pageElement.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center'
-  })
+
+  if (pageElement) {
+    pdfContainerScroll.value.scrollTo({
+      top: pageElement.offsetTop,
+      behavior: 'smooth'
+    })
+    pdfCurrentPage.value = page
+  }
 }
 
-const extractTextFormPDF = async (pageNumber) => {
+const extractTextFormPDF = async () => {
   if (pdfText.value == null || pdfText.value == '') {
-    const page = await pdfDoc.getPage(pageNumber)
+    for (let pageNumber = 1; pageNumber <= pdfTotalPages.value; pageNumber++) {
+      const page = await pdfDoc.getPage(pageNumber)
 
-    const textContent = await page.getTextContent()
-    console.log('textContent', textContent)
+      const textContent = await page.getTextContent()
+      // console.log('textContent', textContent)
 
-    const textItems = textContent.items
-    console.log('textItems', textItems)
+      const textItems = textContent.items
+      // console.log('textItems', textItems)
 
-    const str = textItems.map((item) => item.str).join('')
-    pdfText.value = str
+      const str = textItems.map((item) => item.str).join('')
+      pdfText.value = str
 
-    textContent.items.forEach((textItem) => {
-      const textDiv = document.createElement('button')
-      textDiv.textContent = textItem.str
-      textDiv.style.color = 'rgba(0,0,0,0)'
-      textDiv.style.position = 'absolute'
-      textDiv.className = 'bg-lime-500 bg-opacity-50 p-1 hover:bg-opacity-100'
-      const viewport = page.getViewport({
-        scale: pdfSetting.value.pdfViewer.scale / 100
+      textContent.items.forEach((textItem) => {
+        const parentDiv = document.getElementById('page-' + pageNumber)
+        parentDiv.style.position = 'relative'
+        const textDiv = document.createElement('span')
+        textDiv.dataset.page = pageNumber
+        textDiv.textContent = textItem.str
+        textDiv.style.color = 'rgba(0,0,0,0)'
+        textDiv.style.position = 'absolute'
+        // textDiv.className = 'bg-lime-500 bg-opacity-50 hover:bg-opacity-100'
+        const viewport = page.getViewport({
+          scale: pdfSetting.value.pdfViewer.scale / 100
+        })
+        // console.log(textContent.items)
+
+        const [scaleX, skewY, skewX, scaleY, translateX, translateY] = textItem.transform
+        // console.log(viewport.height)
+
+        // console.log('viewport', viewport.scale)
+        // console.log('textItem.transform', viewport.height)
+        // console.log('textItem.transform', translateX)
+
+        textDiv.style.fontSize = `${scaleX}px`
+        textDiv.style.left = `${translateX * viewport.scale}px`
+        textDiv.style.top = `${viewport.height - scaleX - translateY * viewport.scale}px`
+        // textDiv.style.transform = `scale(${viewport.scale},${viewport.scale}) skew(0deg, 0deg)`
+        parentDiv.appendChild(textDiv)
       })
-      // 获取文本位置（transform 矩阵的位移部分）
-      // console.log('textItem.transform',textItem.transform);
-
-      const [scaleX, skewY, skewX, scaleY, translateX, translateY] = textItem.transform
-      console.log(viewport.height)
-
-      textDiv.style.left = `${translateX * viewport.scale}px`
-      textDiv.style.top = `${viewport.height - translateY * viewport.scale}px`
-      // textDiv.style.transform = `scale(${viewport.scale},${viewport.scale}) skew(0deg, 0deg)`
-
-      pdfContainer.value.appendChild(textDiv)
-    })
+    }
   }
 }
 
@@ -207,8 +279,14 @@ const renderAllPages = async () => {
       scale: pdfSetting.value.pdfViewer.scale / 100
     })
     const div = document.createElement('div')
-    div.style.padding = `30px 0px`
+    div.style.position = 'relative'
+    div.style.border = `1rem solid rgba(0,0,0,0)`
     div.id = `page-${pageNum}`
+
+    if (pageNum == pdfTotalPages.value) {
+      div.style.marginBottom = '100px'
+    }
+
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')
     canvas.width = viewport.width
@@ -223,6 +301,63 @@ const renderAllPages = async () => {
 
     pdfContainer.value.appendChild(div)
   }
+}
+
+const removeTextHightLight = () => {
+  // 查找所有高亮元素
+  const highlightedElements = document.querySelectorAll(
+    '#pdfViewer span.bg-yellow-400.bg-opacity-25'
+  )
+
+  // 遍历所有高亮元素
+  highlightedElements.forEach((element) => {
+    // 获取高亮元素的父节点
+    const parent = element.parentNode
+    // 创建文本节点，内容为高亮元素的文本
+    const textNode = document.createTextNode(element.textContent)
+    // 用文本节点替换高亮元素
+    parent.replaceChild(textNode, element)
+  })
+
+  // 清空 pdfPageList
+}
+// 高亮文本
+const hightLightText = (textToHighlight) => {
+  const walker = document.createTreeWalker(
+    document.querySelector('#pdfViewer'),
+    NodeFilter.SHOW_TEXT,
+    null,
+    false
+  )
+
+  let node
+  const nodesToHighlight = []
+
+  // 遍历所有文本节点，查找匹配的文本
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.includes(textToHighlight)) {
+      nodesToHighlight.push(node)
+    }
+  }
+
+  // 为匹配的文本节点添加高亮效果
+  nodesToHighlight.forEach((node) => {
+    pdfPageList.value.push(node.parentElement.attributes.getNamedItem('data-page').value)
+    pdfPageList.value = [...new Set(pdfPageList.value)]
+    if (pdfSetting.value.autoHighlight) {
+      const text = node.nodeValue
+      const newText = text.replace(
+        new RegExp(textToHighlight, 'g'),
+        `<span class="bg-yellow-400 bg-opacity-25">${textToHighlight}</span>`
+      )
+      const temp = document.createElement('div')
+      temp.innerHTML = newText
+      while (temp.firstChild) {
+        node.parentNode.insertBefore(temp.firstChild, node)
+      }
+      node.parentNode.removeChild(node)
+    }
+  })
 }
 
 // 创建所有页面的缩略图
@@ -243,70 +378,78 @@ const createThumbnails = async () => {
       canvasContext: context,
       viewport: viewport
     }).promise
-
-    // 将 canvas 转为图片，并保存为缩略图
     pdfThumbnails.value.push(canvas.toDataURL())
   }
-  for (let pageNum = 1; pageNum <= pdfTotalPages.value; pageNum++) {
-    const page = await pdfDoc.getPage(pageNum)
-    const viewport = page.getViewport(pdfSetting.value.pdfViewer.scale)
+}
+// 添加数据
+const addIndexItem = (index) => {
+  hightLightText(pdfSelectionText.value)
+  pdfIndexData.value.indexData[index].data.push({
+    pdfPage: pdfPageList.value,
+    content: pdfSelectionText.value,
+    highlight: pdfSetting.value.autoHighlight
+  })
+  // if (event == 'biaoMu') {
+  //   pdfIndexData.value.biaoMu.data.push({
+  //     pdfPage: pdfPageList.value,
+  //     content: pdfSelectionText.value,
+  //     highlight: pdfSetting.value.autoHighlight
+  //   })
+  // }
+  // if (event == 'chuangXin') {
+  //   pdfIndexData.value.chuangXin.data.push({
+  //     pdfPage: pdfPageList.value,
+  //     content: pdfSelectionText.value,
+  //     highlight: pdfSetting.value.autoHighlight
+  //   })
+  // }
 
-    const canvas = document.createElement('canvas')
-    const context = canvas.getContext('2d')
-    canvas.width = viewport.width
-    canvas.height = viewport.height
-
-    // 将页面渲染到 canvas 上
-    await page.render({
-      canvasContext: context,
-      viewport: viewport
-    }).promise
-
-    // 将 canvas 转为图片，并保存为缩略图
-    pdfPageList.value.push(canvas.toDataURL())
+  pdfPageList.value = []
+}
+// pdf滚动事件
+const pdfWheel = (event) => {
+  // 放大缩小pdf
+  if (currentKeyDownRef.value === 'Control') {
+    if (event.deltaY < 0) {
+      pdfSetting.value.pdfViewer.scale += 5
+      renderAllPages()
+    } else {
+      pdfSetting.value.pdfViewer.scale -= 5
+      renderAllPages()
+    }
   }
 }
-
-// 下一页
-const nextPage = () => {
-  if (pdfCurrentPage.value < pdfTotalPages.value) {
-    pdfCurrentPage.value++
-    renderPage(pdfCurrentPage.value)
-  }
+// 自定义排序
+const sortText = (a, b) => {
+  // console.log(a, b)
+  return a.content.localeCompare(b.content)
 }
-// 上一页
-const prevPage = () => {
-  if (pdfCurrentPage.value <= pdfTotalPages.value && pdfCurrentPage.value != 1) {
-    pdfCurrentPage.value--
-    renderPage(pdfCurrentPage.value)
-  }
-}
-
-// const pdfWheel = (event) => {
-
-//   if (currentKeyDownRef.value === 'Control') {
-//     if (event.deltaY < 0) {
-//       pdfSetting.value.pdfViewer.scale += 5
-//       renderAllPages()
-//     } else {
-//       pdfSetting.value.pdfViewer.scale -= 5
-//       renderAllPages()
-//     }
-//   }
-// }
-
 // const goToPage = (page) => {
 //   pdfCurrentPage.value = page
 //   renderAllPages(page)
 // }
 // 监听页码变化并重新渲染
-watch(pdfCurrentPage, (newPage) => {
-  // renderPage(newPage)
-  renderPage(newPage)
-})
+// watch(pdfCurrentPage, (newPage) => {
+//   // renderPage(newPage)
+//   renderAllPages()
+// })
+provide('removeTextHightLight', removeTextHightLight)
+provide('sortText', sortText)
+provide('scrollpage', scrollpage)
+provide('renderAllPages', renderAllPages)
+watch(pdfIndexData.value, (newVal,oldVal) => {
+  console.log('pdfIndexData old', oldVal)
+  console.log('pdfIndexData New', newVal)
 
+})
 onMounted(() => {
   loadPdf()
+  // 自动化索引
+  for (const key in pdfIndexTable.value) {
+    // console.log(key, pdfIndexTable.value[key])
+    // console.log(pdfIndexData.value.indexData[key].id)
+    pdfIndexData.value.indexData[key].id = key
+  }
 })
 </script>
 
@@ -323,7 +466,7 @@ onMounted(() => {
 
 .el-aside.leftAside {
   border-right: 1px solid var(--el-color-success);
-  @apply overflow-clip;
+  @apply overflow-clip h-max;
 }
 
 .el-aside.rightAside {
@@ -334,10 +477,15 @@ onMounted(() => {
   background-color: rgba(240, 249, 235, 0.15) !important;
   height: 100vh;
   overflow: hidden;
+  position: relative;
 }
 
 #pdfViewer {
   background-color: rgb(179, 224.5, 156.5);
   @apply py-4;
+}
+
+.highlight {
+  @apply bg-yellow-400 bg-opacity-25;
 }
 </style>
