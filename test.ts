@@ -18,7 +18,7 @@ http
     }
     if(flag==='2'){
       writeFile(
-        'C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\setting\\projects.json',
+        'resources/setting/projects.json',
         url.parse(request.url, true).query.data,
         (err) => {
           if (err) throw err
@@ -35,7 +35,7 @@ http
         response.end('异常')
       })
       writeFile(
-        'C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\setting\\projects.json',
+        'resources/setting/projects.json',
         url.parse(request.url, true).query.data,
         (err) => {
           if (err) throw err
@@ -50,7 +50,7 @@ http
       console.log(key)
       console.log(list)
       writeFile(
-        'C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\setting\\projects.json',
+        'resources/setting/projects.json',
         listString,
         (err) => {
           if (err) throw err
@@ -66,10 +66,7 @@ http
         }
       )
     }
-
-
     // 下句是发送响应数据
-
   })
   .listen(8888)
 // 终端打印如下信息
