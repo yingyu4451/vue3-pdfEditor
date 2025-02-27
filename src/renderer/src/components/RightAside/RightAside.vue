@@ -15,20 +15,25 @@
         size="small"
         @sort-change="updateTable(item[index], index)"
       >
-        <el-table-column prop="content" sortable :sort-method="sortText" label="文本" />
+        <el-table-column prop="content" :sort-method="sortText" label="文本" />
         <el-table-column prop="pdfPage" label="页码" />
         <!-- <el-table-column label="高亮">
           <template #default="scope">
             <el-checkbox v-model="item.highlight">{{ item.highlight }}</el-checkbox>
           </template>
         </el-table-column> -->
-        <el-table-column  label="选项">
+        <el-table-column label="选项">
           <template #default="scope">
             <el-button-group>
               <el-button link type="primary" size="small" @click.prevent="edit(scope.$index)">
                 编辑
               </el-button>
-              <el-button link type="danger" size="small" @click.prevent="deleteRow(index, scope)">
+              <el-button
+                link
+                type="danger"
+                size="small"
+                @click.prevent="deleteRow(index, scope.$index)"
+              >
                 删除
               </el-button>
             </el-button-group>
@@ -48,6 +53,8 @@ const sortText = inject('sortText')
 const pdfIndexTable = inject('pdfIndexTable')
 const pdfsetting = inject('pdfSetting')
 
+let tableInstance
+
 const updateTable = (tableData, index) => {
   // console.log(Object.keys(pdfIndexData.value))
   // console.log('tableData', tableData, ref)
@@ -56,9 +63,9 @@ const updateTable = (tableData, index) => {
   // console.log('当前表格索引:', index)
   // console.log('当前表格数据:', tableData)
   // console.log('当前表格index:', index)
-
+  pdfIndexTable.value[index]
   // 通过 ref 获取表格实例
-  const tableInstance = pdfIndexTable.value[index]
+
   if (tableInstance) {
     console.log('表格实例:', tableInstance)
     // 获取当前表格的选中行
@@ -73,13 +80,13 @@ const callRemoveTextHightLight = (content) => {
 }
 
 const deleteRow = (dataName, index) => {
-  console.log('dataName', dataName)
-  console.log('index.store', index.store)
-  console.log('index.row', index.row)
-  console.log('index.$index', index.$index)
+  // console.log('dataName', dataName)
+  // console.log('index.store', index.store)
+  // console.log('index.row', index.row)
+  // console.log('index.$index', index.$index)
 
-  // callRemoveTextHightLight(pdfIndexData.value[dataName].data[index].content)
-  // pdfIndexData.value[dataName].data.splice(index, 1)
+  callRemoveTextHightLight(pdfIndexData.value.indexData[dataName].data[index].content)
+  pdfIndexData.value.indexData[dataName].data.splice(index, 1)
 }
 </script>
 

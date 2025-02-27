@@ -71,13 +71,19 @@ const pdfIndexData = ref({
       name: 'biaoMu',
       id: 1,
       title: '标目',
-      data: []
+      data: [
+        { pdfPage: ['1', '3'], content: '工作管理', highlight: true },
+        { pdfPage: ['1', '3'], content: '工作管理', highlight: true }
+      ]
     },
     {
       id: 1,
       name: 'chuangXin',
       title: '创新词汇',
-      data: []
+      data: [
+        { pdfPage: ['1', '3'], content: '工作管理', highlight: true },
+        { pdfPage: ['1', '3'], content: '工作管理', highlight: true }
+      ]
     }
   ]
 })
@@ -99,7 +105,7 @@ const pdfSetting = ref({
   }
 })
 const currentKeyDownRef = ref()
-
+const outputData = ref()
 provide('pdfSetting', pdfSetting)
 provide('pdfCurrentPage', pdfCurrentPage)
 provide('pdfTotalPages', pdfTotalPages)
@@ -108,6 +114,7 @@ provide('pdfThumbnails', pdfThumbnails)
 provide('pdfText', pdfText)
 provide('pdfIndexData', pdfIndexData)
 provide('pdfIndexTable', pdfIndexTable)
+provide('outputData', outputData)
 // 检测屏幕大小
 if (window.innerWidth == 1920) {
   pdfSetting.value.pdfViewer.scale = 100
@@ -387,8 +394,17 @@ const addIndexItem = (index) => {
   pdfIndexData.value.indexData[index].data.push({
     pdfPage: pdfPageList.value,
     content: pdfSelectionText.value,
-    highlight: pdfSetting.value.autoHighlight
+    highlight: pdfSetting.value.autoHighlight,
+    tag: pdfIndexData.value.indexData[index].name
   })
+  if (index == 1) {
+    pdfIndexData.value.indexData[0].data.push({
+      pdfPage: pdfPageList.value,
+      content: pdfSelectionText.value,
+      highlight: pdfSetting.value.autoHighlight,
+      tag: pdfIndexData.value.indexData[index].name
+    })
+  }
   // if (event == 'biaoMu') {
   //   pdfIndexData.value.biaoMu.data.push({
   //     pdfPage: pdfPageList.value,
