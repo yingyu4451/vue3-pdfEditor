@@ -1,7 +1,7 @@
 <template>
   <div class="common-layout">
     <el-container>
-      <el-aside v-if="pdfSetting.pdfViewer.leftAsideShow" class="leftAside" width="240px">
+      <el-aside v-if="pdfSetting.pdfViewer.leftAsideShow" class="leftAside" width="12%">
         <LeftAside></LeftAside>
       </el-aside>
       <el-container>
@@ -33,7 +33,7 @@
           </div>
         </el-main>
       </el-container>
-      <el-aside v-if="pdfSetting.pdfViewer.rightAsideShow" class="rightAside" width="320px">
+      <el-aside v-if="pdfSetting.pdfViewer.rightAsideShow" class="rightAside" width="17%">
         <RightAside></RightAside>
       </el-aside>
     </el-container>
@@ -43,7 +43,7 @@
 <script setup>
 import { ref, onMounted, watch, provide } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
-import pdf from './../../../../../resources/1.pdf?asset'
+import pdf from '../../../../../resources/1.pdf?asset'
 // import '../../../../../resources/Tesseract/worker.min.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core.wasm.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core-simd.wasm.js?asset'
@@ -437,10 +437,9 @@ provide('removeTextHightLight', removeTextHightLight)
 provide('sortText', sortText)
 provide('scrollpage', scrollpage)
 provide('renderAllPages', renderAllPages)
-watch(pdfIndexData.value, (newVal,oldVal) => {
+watch(pdfIndexData.value, (newVal, oldVal) => {
   console.log('pdfIndexData old', oldVal)
   console.log('pdfIndexData New', newVal)
-
 })
 onMounted(() => {
   loadPdf()

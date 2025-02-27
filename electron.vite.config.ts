@@ -3,17 +3,16 @@ import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
-
   main: {
-    assetsInclude: ['**/*.gz?asset','**/*.gz','**/*.traineddata'],
+    assetsInclude: ['**/*.gz?asset', '**/*.gz', '**/*.docx', '**/*.docx?asset', '**/*.traineddata'],
     plugins: [externalizeDepsPlugin()]
   },
   preload: {
-    assetsInclude: ['**/*.gz?asset','**/*.gz','**/*.traineddata'],
+    assetsInclude: ['**/*.gz?asset', '**/*.gz', '**/*.docx', '**/*.docx?asset', '**/*.traineddata'],
     plugins: [externalizeDepsPlugin()]
   },
   renderer: {
-    assetsInclude: ['**/*.gz?asset','**/*.gz','**/*.traineddata'],
+    assetsInclude: ['**/*.gz?asset', '**/*.gz', '**/*.docx', '**/*.docx?asset', '**/*.traineddata'],
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src')
@@ -29,6 +28,5 @@ export default defineConfig({
         }
       }
     }
-  },
-
+  }
 })

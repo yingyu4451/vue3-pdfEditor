@@ -49,7 +49,7 @@
       @click="callScrollpage(index + 1)"
     >
       <img class="mx-auto" :src="thumbnail" :alt="'Page ' + (index + 1)" />
-      <span class="absolute top-0 w-6 h-6 text-center">{{ index + 1 }}</span>
+      <span class="absolute top-5 w-6 h-6 text-center">{{ index + 1 }}</span>
     </div>
   </el-scrollbar>
 </template>
@@ -82,12 +82,10 @@ const callScrollpage = (page) => {
     @apply mb-12;
   }
   div {
-    @apply py-5 cursor-pointer ease-in-out transition-all duration-100;
+    @apply py-5 px-4 cursor-pointer ease-in-out transition-all duration-100;
     @apply hover:bg-lime-300 hover:bg-opacity-50;
     span {
       background-color: var(--el-color-success);
-      top: 20px;
-      left: 21px;
     }
     img {
       border: 1px solid var(--el-color-success);

@@ -18,7 +18,7 @@ http
     }
     if(flag==='2'){
       writeFile(
-        'C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\setting\\projects.json',
+        'resources\\setting\\projects.json',
         url.parse(request.url, true).query.data,
         (err) => {
           if (err) throw err

@@ -22,7 +22,7 @@
             <el-checkbox v-model="item.highlight">{{ item.highlight }}</el-checkbox>
           </template>
         </el-table-column> -->
-        <el-table-column fixed="right" label="选项">
+        <el-table-column  label="选项">
           <template #default="scope">
             <el-button-group>
               <el-button link type="primary" size="small" @click.prevent="edit(scope.$index)">
