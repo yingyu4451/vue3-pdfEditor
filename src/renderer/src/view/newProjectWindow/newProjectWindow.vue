@@ -60,7 +60,7 @@ function selectFile(flag1) {
 function newProject(edit) {
   latestEditors.value=projectCreatePerson.value
   const params = new URLSearchParams();
-  if (edit){
+  if (edit && !flag){
     //编辑
     let obj ={
       projectName: name.value,
@@ -200,6 +200,7 @@ function dateData(property, bol) {
         >保存</el-button
       >
       <el-button class="footerBtn" @click="$router.back">取消</el-button>
+
     </div>
   </div>
 </template>

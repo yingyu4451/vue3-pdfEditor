@@ -50,8 +50,13 @@ import pdf from '../../../../../resources/1.pdf?asset'
 import ToolBar from '@renderer/components/ToolBar/ToolBar.vue'
 import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
 import RightAside from '@renderer/components/RightAside/RightAside.vue'
+import axios from 'axios'
+import router from '../../router/router'
+import er from '../../../../../resources/setting/projects.json'
+import { data } from 'autoprefixer'
 
-const pdfUrl = pdf
+
+let pdfUrl = pdf
 let pdfDoc = null
 // const pdfCanvas = ref(null)
 const pdfContainer = ref(null)
@@ -175,7 +180,7 @@ document.addEventListener('mousemove', (event) => {
 // 加载 PDF 文件
 const loadPdf = async () => {
   try {
-    const loadingTask = pdfjsLib.getDocument(pdfUrl)
+    const loadingTask = pdfjsLib.getDocument('C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\1.pdf')
     pdfDoc = await loadingTask.promise
     pdfTotalPages.value = pdfDoc.numPages
     loading.value = false
@@ -457,7 +462,17 @@ watch(pdfIndexData.value, (newVal, oldVal) => {
   console.log('pdfIndexData old', oldVal)
   console.log('pdfIndexData New', newVal)
 })
-onMounted(() => {
+onMounted(async () => {
+  let it = JSON.parse(window.localStorage.getItem('it'))
+  console.log(it)
+  let path = it.path
+  const params = new URLSearchParams();
+  params.append('flag', '5');
+  params.append('data', path);
+  axios.get('/api?',{params}).then((res)=>{
+   console.log(res.data)
+    pdfUrl=res.data
+  })
   loadPdf()
   // 自动化索引
   for (const key in pdfIndexTable.value) {
@@ -466,6 +481,8 @@ onMounted(() => {
     pdfIndexData.value.indexData[key].id = key
   }
 })
+
+
 </script>
 
 <style scoped>

@@ -37,6 +37,7 @@ function openFile(item,key) {
   console.log(er)
   const params = new URLSearchParams();
   params.append('data', JSON.stringify(er));
+  window.localStorage.setItem('it', JSON.stringify(er[key]))
   router.push('/pdf')
   // axios.get('/api?',{params}).then(()=>{
   //
