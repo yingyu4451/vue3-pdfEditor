@@ -13,6 +13,7 @@ const latestEditors=ref('')
 const flag = ref(new URL(window.location.href.replace('/#', '')).searchParams.get('flag'))
 const set = ref(new URL(window.location.href.replace('/#', '')).searchParams.get('setting'))
 const key = ref(new URL(window.location.href.replace('/#', '')).searchParams.get('key'))
+const type = ref(new URL(window.location.href.replace('/#', '')).searchParams.get('type'))
 const createTime = ref('')
 const setingPath = ref('')
 const lastOpenTime = ref('')
@@ -58,11 +59,10 @@ function selectFile(flag1) {
   }
 }
 function newProject(edit) {
-  latestEditors.value=projectCreatePerson.value
   const params = new URLSearchParams();
-  if (edit && !flag){
+  if (edit){
     //编辑
-    let obj ={
+    const obj = {
       projectName: name.value,
       path: filePath.value,
       lastOpenTime: lastOpenTime.value,
@@ -73,8 +73,9 @@ function newProject(edit) {
       settingPath: setingPath.value
     }
     console.log(obj)
+    er[key.value]= obj
     console.log(er[key.value])
-    er.splice(key.value, 1, obj)
+
     console.log(er)
     params.append('data', JSON.stringify(er))
     params.append('flag', '4')
@@ -82,6 +83,7 @@ function newProject(edit) {
   }else {
     //新建项目
     if(flag.value){
+      latestEditors.value=projectCreatePerson.value
       setingPath.value=filePath.value.toString().substring(0,filePath.value.toString().lastIndexOf("\\")+1)+name.value+'.json'
       er.push({
         projectName: name.value,
@@ -124,23 +126,25 @@ onMounted(() => {
    flag.value = true
   }else {
     flag.value = false
-   setingPath.value=set.value
-    const params = new URLSearchParams();
-    params.append('flag', '1');
-    params.append('data', setingPath.value);
-    axios.get('/api?',{params}).then((data)=>{
-      console.log(data.data)
-      // router.back()
-      filePath.value=data.data.path
-      name.value=data.data.projectName
-      latestEditors.value=data.data.latestEditors
-      remark.value=data.data.remark
-      createTime.value=data.data.createTime
-      projectCreatePerson.value=data.data.projectCreatePerson
-      setingPath.value=data.data.settingPath
-      lastOpenTime.value=data.data.lastOpenTime
-    })
-  }
+   if(type.value!=='dr'){
+     setingPath.value=set.value
+     const params = new URLSearchParams();
+     params.append('flag', '1');
+     params.append('data', setingPath.value);
+     axios.get('/api?',{params}).then((data)=>{
+       console.log(data.data)
+       // router.back()
+       filePath.value=data.data.path
+       name.value=data.data.projectName
+       latestEditors.value=data.data.latestEditors
+       remark.value=data.data.remark
+       createTime.value=data.data.createTime
+       projectCreatePerson.value=data.data.projectCreatePerson
+       setingPath.value=data.data.settingPath
+       lastOpenTime.value=data.data.lastOpenTime
+     })
+   }
+   }
 })
 // property是你需要排序传入的key,bol为true时是升序，false为降序
 function dateData(property, bol) {
