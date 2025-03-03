@@ -44,7 +44,7 @@
 <script setup>
 import { ref, onMounted, watch, provide, onUnmounted } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
-import pdf from '../../../../../resources/1.pdf?asset'
+// import pdf from '../../../../../resources/3.pdf?asset'
 // import '../../../../../resources/Tesseract/worker.min.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core.wasm.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core-simd.wasm.js?asset'
@@ -56,6 +56,9 @@ import router from '../../router/router'
 import er from '../../../../../resources/setting/projects.json'
 import { data } from 'autoprefixer'
 
+const pdfModules = import.meta.glob('@resources/*.pdf')
+
+const pdfUrl = '/@fs/J:/work/tc-pdf/resources/3.pdf'
 
 let pdfUrl = ref('')
 let pdfDoc = null
@@ -181,7 +184,7 @@ document.addEventListener('mousemove', (event) => {
 // 加载 PDF 文件
 const loadPdf = async () => {
   try {
-    const loadingTask = pdfjsLib.getDocument({ data: pdfUrl.value })
+    const loadingTask = pdfjsLib.getDocument('C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\1.pdf')
     pdfDoc = await loadingTask.promise
     pdfTotalPages.value = pdfDoc.numPages
     loading.value = false
@@ -459,10 +462,10 @@ provide('removeTextHightLight', removeTextHightLight)
 provide('sortText', sortText)
 provide('scrollpage', scrollpage)
 provide('renderAllPages', renderAllPages)
-watch(pdfIndexData.value, (newVal, oldVal) => {
-  console.log('pdfIndexData old', oldVal)
-  console.log('pdfIndexData New', newVal)
-})
+// watch(pdfIndexData.value, (newVal, oldVal) => {
+//   console.log('pdfIndexData old', oldVal)
+//   console.log('pdfIndexData New', newVal)
+// })
 onMounted(async () => {
 
   let it = JSON.parse(window.localStorage.getItem('it'))
@@ -473,31 +476,7 @@ onMounted(async () => {
   params.append('data', path);
   axios.get('/api?',{params}).then((res)=>{
    console.log(res.data)
-    let base64Data = res.data
-    // // 去除前缀
-    // base64Data = base64Data.split(',')[1] || base64Data;
-    // // 去除空格和换行符
-    // base64Data = base64Data.replace(/\s/g, '');
-    // // 去除 BOM
-    // base64Data = base64Data.replace(/^\uFEFF/, '');
-    // // 确保编码字符集
-    // base64Data = decodeURIComponent(encodeURIComponent(base64Data));
-    // // 将 Base64 数据转换为 Uint8Array
-    // const byteCharacters = atob(base64Data);
-    // const byteNumbers = new Array(byteCharacters.length);
-    // for (let i = 0; i < byteCharacters.length; i++) {
-    //   byteNumbers[i] = byteCharacters.charCodeAt(i);
-    // }
-    const path = res.data
-    const raw = window.atob(path);
-    const rawLength = raw.length;
-    const uInt8Array = new Uint8Array(rawLength);
-    for (let i = 0; i < rawLength; ++i) {
-      uInt8Array[i] = raw.charCodeAt(i);
-    }
-
-    pdfUrl.value = uInt8Array;
-    console.log(pdfUrl.value)
+    pdfUrl=res.data
   })
   loadPdf()
   // 自动化索引
@@ -507,24 +486,8 @@ onMounted(async () => {
     pdfIndexData.value.indexData[key].id = key
   }
 })
-//关闭页面或者点击保存时调用保存方法
-onUnmounted(()=>{
-  alert("销毁")
-})
-//保存标目
-function saveHeadings() {
-  //获取需要保存的标目列表
-  const headings = pdfIndexData.value.indexData[0].data
-  //配置参数
-  const params = new URLSearchParams()
-  const it = JSON.parse(window.localStorage.getItem('it'))
-  const path = it.settingPath
-  params.append('flag', '6')
-  params.append('data', JSON.stringify(headings))
-  params.append('path', path)
-  //通过axios请求方式将标目列表保存至配置文件
-  axios.get('/api',{params}).then((res) => {})
-}
+
+
 </script>
 
 <style scoped>

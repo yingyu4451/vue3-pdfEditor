@@ -1,5 +1,6 @@
 
-const { writeFile,readFile,createReadStream } = require('fs')
+
+const { writeFile,readFile,createReadStream } = require('fs-extra')
 const http = require('http')
 const url = require('url')
 

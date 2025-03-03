@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import path, { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
 
@@ -15,7 +15,8 @@ export default defineConfig({
     assetsInclude: ['**/*.gz?asset', '**/*.gz', '**/*.docx', '**/*.docx?asset', '**/*.traineddata'],
     resolve: {
       alias: {
-        '@renderer': resolve('src/renderer/src')
+        '@renderer': resolve('src/renderer/src'),
+        '@resources': resolve(  './resources')
       }
     },
     plugins: [vue()],
