@@ -58,6 +58,7 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('window-new', (event, args) => {
+      console.log(event)
       new BrowserWindow({
       width: 1000,
       height: 800,
