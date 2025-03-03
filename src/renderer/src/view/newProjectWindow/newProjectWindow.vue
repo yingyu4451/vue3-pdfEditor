@@ -82,6 +82,7 @@ function newProject(edit) {
     params.append('key', key.value)
   }else {
     //新建项目
+
     if(flag.value){
       latestEditors.value=projectCreatePerson.value
       setingPath.value=filePath.value.toString().substring(0,filePath.value.toString().lastIndexOf("\\")+1)+name.value+'.json'
@@ -198,7 +199,7 @@ function dateData(property, bol) {
        </span>
     </div>
     <div class="footer">
-      <el-button v-if="flag" class="footerBtn" @click="newProject">完成</el-button>
+      <el-button v-if="flag" class="footerBtn" @click="newProject(false)">完成</el-button>
       <el-button v-if="!flag && set==null||set===''" class="footerBtn" @click="newProject">导入</el-button>
       <el-button v-if="set !== null && set !== ''" class="footerBtn" @click="newProject(true)"
         >保存</el-button

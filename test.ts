@@ -1,6 +1,5 @@
 
-
-const { writeFile,readFile,createReadStream } = require('fs-extra')
+const { writeFile,readFile,createReadStream,unlink } = require('fs-extra')
 const http = require('http')
 const url = require('url')
 
@@ -93,6 +92,12 @@ http
         writeFile(path, JSON.stringify(tempList), (err) => {
         })
       })
+    }
+    if(flag==='7'){
+      const settingPath = url.parse(request.url, true).query.data
+      console.log(settingPath)
+
+      unlink(settingPath,() => {})
     }
   })
   .listen(8888)
