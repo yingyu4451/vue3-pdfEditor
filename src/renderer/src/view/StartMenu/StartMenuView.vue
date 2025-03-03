@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import er from '../../../../../resources/setting/projects.json'
 import router from '../../router/router'
 import axios from 'axios'
+import {windowCreate} from "../../js/plugin"
 
 const dialogVisible = ref(false)
 const projects = ref()
@@ -32,13 +33,14 @@ function dateData(property, bol) {
 }
 
 function openFile(item,key) {
-  item = null;
+
   er[key].lastOpenTime = new Date().toLocaleString()
   console.log(er)
   const params = new URLSearchParams();
   params.append('data', JSON.stringify(er));
   window.localStorage.setItem('it', JSON.stringify(er[key]))
-  router.push('/pdf')
+  windowCreate({'title':item.projectName})
+
   // axios.get('/api?',{params}).then(()=>{
   //
   // })
