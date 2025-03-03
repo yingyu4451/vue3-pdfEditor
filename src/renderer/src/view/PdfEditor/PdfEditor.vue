@@ -9,6 +9,7 @@
           <tool-bar @extract-text-form-p-d-f="extractTextFormPDF"></tool-bar>
         </el-header>
         <el-main>
+          <button @click="saveHeadings">保存</button>
           <div id="pdfViewer" class="relative" @wheel="pdfWheel">
             <el-scrollbar ref="pdfContainerScroll" max-height="100vh">
               <!-- 添加按钮 -->
@@ -41,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, provide } from 'vue'
+import { ref, onMounted, watch, provide, onUnmounted } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
 // import pdf from '../../../../../resources/3.pdf?asset'
 // import '../../../../../resources/Tesseract/worker.min.js?asset'
@@ -59,6 +60,7 @@ const pdfModules = import.meta.glob('@resources/*.pdf')
 
 const pdfUrl = '/@fs/J:/work/tc-pdf/resources/3.pdf'
 
+let pdfUrl = ref('')
 let pdfDoc = null
 // const pdfCanvas = ref(null)
 const pdfContainer = ref(null)
@@ -182,7 +184,7 @@ document.addEventListener('mousemove', (event) => {
 // 加载 PDF 文件
 const loadPdf = async () => {
   try {
-    const loadingTask = pdfjsLib.getDocument(pdfUrl)
+    const loadingTask = pdfjsLib.getDocument('C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\1.pdf')
     pdfDoc = await loadingTask.promise
     pdfTotalPages.value = pdfDoc.numPages
     loading.value = false
@@ -465,15 +467,16 @@ provide('renderAllPages', renderAllPages)
 //   console.log('pdfIndexData New', newVal)
 // })
 onMounted(async () => {
+
   let it = JSON.parse(window.localStorage.getItem('it'))
   console.log(it)
   let path = it.path
-  // pdfUrl = path
-  const params = new URLSearchParams()
-  params.append('flag', '5')
-  params.append('data', path)
-  axios.get('/api?', { params }).then((res) => {
-    console.log(res.data)
+  const params = new URLSearchParams();
+  params.append('flag', '5');
+  params.append('data', path);
+  axios.get('/api?',{params}).then((res)=>{
+   console.log(res.data)
+    pdfUrl=res.data
   })
   loadPdf()
   // 自动化索引
@@ -483,6 +486,8 @@ onMounted(async () => {
     pdfIndexData.value.indexData[key].id = key
   }
 })
+
+
 </script>
 
 <style scoped>

@@ -8,18 +8,14 @@ const url = require('url')
 http
   .createServer(function (request, response) {
     const flag=url.parse(request.url, true).query.flag
-
-    // 发送 HTTP 头部
-    // HTTP 状态值: 200 : OK
-    // 内容类型: text/plain。并用charset=UTF-8解决输出中文乱码
-    // response.writeHead(200, { 'Content-Type': 'text/plain; charset=UTF-8' })
+    //读取配置文件并返回
     if(flag==='1'){
       let seting = url.parse(request.url, true).query.data
-      console.log(seting)
       readFile(seting.toString(), (err, data) => {
-        response.end(data);
+        response.end(JSON.stringify(eval(data.toString())[0]));
       })
     }
+    //导入项目，只需要在总配置文件新增，项目信息
     if(flag==='2'){
       writeFile(
         'resources/setting/projects.json',
@@ -30,11 +26,12 @@ http
         }
       )
     }
+    //新建项目，新建项目配置文件，在总配置文件新增该项目
     if(flag==='3'){
       const listString = url.parse(request.url, true).query.data
       const list = JSON.parse(listString)
-      const obj = list[list.length - 1]
-      writeFile(obj.settingPath, JSON.stringify(obj), (err) => {
+      const obj = [list[list.length - 1],[]]
+      writeFile(obj[0].settingPath, JSON.stringify(obj), (err) => {
         if (err) throw err
         response.end('异常')
       })
@@ -47,12 +44,11 @@ http
         }
       )
     }
-    if(flag=='4'){
+    //编辑项目信息
+    if(flag==='4'){
       const listString = url.parse(request.url, true).query.data
       const list = JSON.parse(listString)
       const key = url.parse(request.url, true).query.key
-      console.log(key)
-      console.log(list)
       writeFile(
         'resources/setting/projects.json',
         listString,
@@ -61,30 +57,43 @@ http
           response.end('异常')
         }
       )
+      readFile(list[key].settingPath, (err, data) => {
+        const tempList = eval(data.toString())
+         tempList[0]=list[key]
       writeFile(
         list[key].settingPath,
-        JSON.stringify(list[key]),
+        JSON.stringify(tempList),
         (err) => {
           if (err) throw err
           response.end('异常')
         }
       )
+      })
     }
+    //打开项目获取项目文件
     if(flag==='5'){
       const file = url.parse(request.url, true).query.data
-      console.log(file)
       readFile(file.toString(), (err, data) => {
-        response.end(data);
+        let base = data.toString('base64');
+        response.setHeader('Content-Type', 'application/pdf');
+        response.end(base);
       })
-      // // 设置响应头，指定内容类型为 PDF
-      // response.setHeader('Content-Type', 'application/pdf');
-      // // 创建一个可读流来读取文件内容
-      // const fileStream = createReadStream(file);
-      // // 将文件流管道到响应对象，将文件内容发送给客户端
-      // fileStream.pipe(response);
-
     }
-    // 下句是发送响应数据
+    //保存标目信息
+    if(flag==='6'){
+      //读取标目列表
+      const headings = url.parse(request.url, true).query.data
+      //读取配置文件地址
+      const path = url.parse(request.url, true).query.path
+      //读取配置文件信息
+      readFile(path, (err, data) => {
+        //替换原有标目列表
+        const tempList = eval(data.toString())
+        tempList[1] = eval(headings)
+        writeFile(path, JSON.stringify(tempList), (err) => {
+        })
+      })
+    }
   })
   .listen(8888)
 // 终端打印如下信息

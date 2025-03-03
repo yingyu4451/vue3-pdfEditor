@@ -57,9 +57,8 @@ const handleInputChange = () => {
   }
 }
 
-function openNewProjectWindow(flag) {
-
-  router.push('/newProjectWindow/?flag=' + flag)
+function openNewProjectWindow(flag, type) {
+  router.push('/newProjectWindow/?flag=' + flag + '&type=' + type)
 }
 function openChoose(){
 
@@ -79,8 +78,8 @@ function opEdit(item, key) {
         placeholder="请输入内容"
         @input="handleInputChange"
       />
-      <el-button class="topBtn" @click="openNewProjectWindow(true)">新建项目</el-button>
-      <el-button class="topBtn" @click="openNewProjectWindow(false)">导入</el-button>
+      <el-button class="topBtn" @click="openNewProjectWindow(true,'xj')">新建项目</el-button>
+      <el-button class="topBtn" @click="openNewProjectWindow(false,'dr')">导入</el-button>
     </div>
     <div class="body">
       <div v-for="(item, key) in projects" :key class="bodyList" @dblclick="openFile(item, key)">
