@@ -43,7 +43,7 @@
 <script setup>
 import { ref, onMounted, watch, provide } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
-import pdf from '../../../../../resources/1.pdf?asset'
+// import pdf from '../../../../../resources/3.pdf?asset'
 // import '../../../../../resources/Tesseract/worker.min.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core.wasm.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core-simd.wasm.js?asset'
@@ -55,8 +55,10 @@ import router from '../../router/router'
 import er from '../../../../../resources/setting/projects.json'
 import { data } from 'autoprefixer'
 
+const pdfModules = import.meta.glob('@resources/*.pdf')
 
-let pdfUrl = pdf
+const pdfUrl = '/@fs/J:/work/tc-pdf/resources/3.pdf'
+
 let pdfDoc = null
 // const pdfCanvas = ref(null)
 const pdfContainer = ref(null)
@@ -180,7 +182,7 @@ document.addEventListener('mousemove', (event) => {
 // 加载 PDF 文件
 const loadPdf = async () => {
   try {
-    const loadingTask = pdfjsLib.getDocument('C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\1.pdf')
+    const loadingTask = pdfjsLib.getDocument(pdfUrl)
     pdfDoc = await loadingTask.promise
     pdfTotalPages.value = pdfDoc.numPages
     loading.value = false
@@ -458,20 +460,20 @@ provide('removeTextHightLight', removeTextHightLight)
 provide('sortText', sortText)
 provide('scrollpage', scrollpage)
 provide('renderAllPages', renderAllPages)
-watch(pdfIndexData.value, (newVal, oldVal) => {
-  console.log('pdfIndexData old', oldVal)
-  console.log('pdfIndexData New', newVal)
-})
+// watch(pdfIndexData.value, (newVal, oldVal) => {
+//   console.log('pdfIndexData old', oldVal)
+//   console.log('pdfIndexData New', newVal)
+// })
 onMounted(async () => {
   let it = JSON.parse(window.localStorage.getItem('it'))
   console.log(it)
   let path = it.path
-  const params = new URLSearchParams();
-  params.append('flag', '5');
-  params.append('data', path);
-  axios.get('/api?',{params}).then((res)=>{
-   console.log(res.data)
-    pdfUrl=res.data
+  // pdfUrl = path
+  const params = new URLSearchParams()
+  params.append('flag', '5')
+  params.append('data', path)
+  axios.get('/api?', { params }).then((res) => {
+    console.log(res.data)
   })
   loadPdf()
   // 自动化索引
@@ -481,8 +483,6 @@ onMounted(async () => {
     pdfIndexData.value.indexData[key].id = key
   }
 })
-
-
 </script>
 
 <style scoped>
