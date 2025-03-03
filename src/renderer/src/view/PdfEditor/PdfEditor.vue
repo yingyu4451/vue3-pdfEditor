@@ -9,8 +9,7 @@
           <tool-bar @extract-text-form-p-d-f="extractTextFormPDF"></tool-bar>
         </el-header>
         <el-main>
-          <button @click="saveHeadings">保存</button>
-          <div id="pdfViewer" class="relative" @wheel="pdfWheel">
+          <div id="pdfViewer" class="relative">
             <el-scrollbar ref="pdfContainerScroll" max-height="100vh">
               <!-- 添加按钮 -->
               <el-dropdown style="display: none" @command="addIndexItem">
@@ -44,23 +43,23 @@
 <script setup>
 import { ref, onMounted, watch, provide, onUnmounted } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
-// import pdf from '../../../../../resources/3.pdf?asset'
+import pdf from '../../../../../resources/4.pdf?asset'
 // import '../../../../../resources/Tesseract/worker.min.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core.wasm.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core-simd.wasm.js?asset'
-import ToolBar from '@renderer/components/ToolBar/ToolBar.vue'
-import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
-import RightAside from '@renderer/components/RightAside/RightAside.vue'
 import axios from 'axios'
 import router from '../../router/router'
 import er from '../../../../../resources/setting/projects.json'
 import { data } from 'autoprefixer'
+// 组件
+import ToolBar from '@renderer/components/ToolBar/ToolBar.vue'
+import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
+import RightAside from '@renderer/components/RightAside/RightAside.vue'
 
 const pdfModules = import.meta.glob('@resources/*.pdf')
 
-const pdfUrl = '/@fs/J:/work/tc-pdf/resources/3.pdf'
+let pdfUrl = pdf
 
-let pdfUrl = ref('')
 let pdfDoc = null
 // const pdfCanvas = ref(null)
 const pdfContainer = ref(null)
@@ -81,8 +80,8 @@ const pdfIndexData = ref({
       id: 1,
       title: '标目',
       data: [
-        { pdfPage: ['1', '3'], content: '工作管理', highlight: true },
-        { pdfPage: ['1', '3'], content: '工作管理', highlight: true }
+        { type: 'biaoMu', pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] },
+        { type: 'biaoMu', pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] }
       ]
     },
     {
@@ -90,8 +89,8 @@ const pdfIndexData = ref({
       name: 'chuangXin',
       title: '创新词汇',
       data: [
-        { pdfPage: ['1', '3'], content: '工作管理', highlight: true },
-        { pdfPage: ['1', '3'], content: '工作管理', highlight: true }
+        { pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] },
+        { pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] }
       ]
     }
   ]
@@ -103,6 +102,7 @@ const pdfSetting = ref({
     { title: '添加创新词汇', command: 'chuangXin' }
     // { title: '添加款目', command: 'addIndexItem()' },
   ],
+  showHighlight: true,
   autoHighlight: true,
   pdfViewer: {
     scale: 100,
@@ -115,6 +115,9 @@ const pdfSetting = ref({
 })
 const currentKeyDownRef = ref()
 const outputData = ref()
+const editDialogVisible = ref(false)
+const dialogResult = ref()
+
 provide('pdfSetting', pdfSetting)
 provide('pdfCurrentPage', pdfCurrentPage)
 provide('pdfTotalPages', pdfTotalPages)
@@ -124,6 +127,9 @@ provide('pdfText', pdfText)
 provide('pdfIndexData', pdfIndexData)
 provide('pdfIndexTable', pdfIndexTable)
 provide('outputData', outputData)
+provide('editDialogVisible', editDialogVisible)
+provide('dialogResult', dialogResult)
+
 // 检测屏幕大小
 if (window.innerWidth == 1920) {
   pdfSetting.value.pdfViewer.scale = 100
@@ -160,6 +166,7 @@ document.addEventListener('mouseup', (event) => {
     pdfSelectionPage.value = document
       .getSelection()
       .focusNode.parentElement.attributes.getNamedItem('data-page').value
+    console.log(event.clientX)
 
     addMenu.style.top = `${event.clientY - 70}px`
     addMenu.style.left = `${event.clientX - parseFloat(eventElementParentParentMarginStyle.marginLeft)}px`
@@ -184,14 +191,13 @@ document.addEventListener('mousemove', (event) => {
 // 加载 PDF 文件
 const loadPdf = async () => {
   try {
-    const loadingTask = pdfjsLib.getDocument('C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\1.pdf')
+    const loadingTask = pdfjsLib.getDocument(pdfUrl)
     pdfDoc = await loadingTask.promise
     pdfTotalPages.value = pdfDoc.numPages
     loading.value = false
     // renderPage(pdfCurrentPage.value)
     await renderAllPages()
     createThumbnails()
-    extractTextFormPDF()
   } catch (error) {
     console.error('加载 PDF 时出错:', error)
   }
@@ -275,7 +281,7 @@ const extractTextFormPDF = async () => {
         // console.log('textItem.transform', viewport.height)
         // console.log('textItem.transform', translateX)
 
-        textDiv.style.fontSize = `${scaleX}px`
+        textDiv.style.fontSize = `${scaleX * viewport.scale}px`
         textDiv.style.left = `${translateX * viewport.scale}px`
         textDiv.style.top = `${viewport.height - scaleX - translateY * viewport.scale}px`
         // textDiv.style.transform = `scale(${viewport.scale},${viewport.scale}) skew(0deg, 0deg)`
@@ -288,7 +294,7 @@ const extractTextFormPDF = async () => {
 // 渲染所有页面模式
 const renderAllPages = async () => {
   pdfContainer.value.innerHTML = '' // 清空之前的页面
-
+  pdfText.value = ''
   for (let pageNum = 1; pageNum <= pdfTotalPages.value; pageNum++) {
     const page = await pdfDoc.getPage(pageNum)
     const viewport = page.getViewport({
@@ -317,6 +323,26 @@ const renderAllPages = async () => {
 
     pdfContainer.value.appendChild(div)
   }
+  await extractTextFormPDF()
+}
+
+const removeAllTextHightLight = () => {
+  // 查找所有高亮元素
+  const highlightedElements = document.querySelectorAll(
+    '#pdfViewer span.bg-yellow-400.bg-opacity-25'
+  )
+
+  // 遍历所有高亮元素
+  highlightedElements.forEach((element) => {
+    // 获取高亮元素的父节点
+    const parent = element.parentNode
+    // 创建文本节点，内容为高亮元素的文本
+    const textNode = document.createTextNode(element.textContent)
+    // 用文本节点替换高亮元素
+    parent.replaceChild(textNode, element)
+  })
+
+  // 清空 pdfPageList
 }
 
 const removeTextHightLight = () => {
@@ -337,6 +363,7 @@ const removeTextHightLight = () => {
 
   // 清空 pdfPageList
 }
+
 // 高亮文本
 const hightLightText = (textToHighlight) => {
   const walker = document.createTreeWalker(
@@ -404,14 +431,14 @@ const addIndexItem = (index) => {
     pdfPage: pdfPageList.value,
     content: pdfSelectionText.value,
     highlight: pdfSetting.value.autoHighlight,
-    tag: pdfIndexData.value.indexData[index].name
+    type: pdfIndexData.value.indexData[index].name
   })
   if (index == 1) {
     pdfIndexData.value.indexData[0].data.push({
       pdfPage: pdfPageList.value,
       content: pdfSelectionText.value,
       highlight: pdfSetting.value.autoHighlight,
-      tag: pdfIndexData.value.indexData[index].name
+      type: pdfIndexData.value.indexData[index].name
     })
   }
   // if (event == 'biaoMu') {
@@ -449,34 +476,66 @@ const sortText = (a, b) => {
   // console.log(a, b)
   return a.content.localeCompare(b.content)
 }
-// const goToPage = (page) => {
-//   pdfCurrentPage.value = page
-//   renderAllPages(page)
-// }
+
+function saveEdit() {
+  //获取需要保存的标目列表
+  const headings = pdfIndexData.value.indexData[0].data
+  //配置参数
+  const params = new URLSearchParams()
+  const it = JSON.parse(window.localStorage.getItem('it'))
+  const path = it.settingPath
+  params.append('flag', '6')
+  params.append('data', JSON.stringify(headings))
+  params.append('path', path)
+  //通过axios请求方式将标目列表保存至配置文件
+  axios.get('/api', { params }).then((res) => {})
+}
+
 // 监听页码变化并重新渲染
 // watch(pdfCurrentPage, (newPage) => {
 //   // renderPage(newPage)
 //   renderAllPages()
 // })
+
+// 方法继承
+
 provide('removeTextHightLight', removeTextHightLight)
+provide('removeAllTextHightLight', removeAllTextHightLight)
 provide('sortText', sortText)
 provide('scrollpage', scrollpage)
 provide('renderAllPages', renderAllPages)
+provide('saveEdit', saveEdit)
+provide('dialogResult', dialogResult)
+
 // watch(pdfIndexData.value, (newVal, oldVal) => {
 //   console.log('pdfIndexData old', oldVal)
 //   console.log('pdfIndexData New', newVal)
 // })
-onMounted(async () => {
 
+watch(pdfSetting.value, (newVal) => {
+  // console.log(newVal.showHighlight)
+
+  if (newVal.showHighlight) {
+    // console.log('if true')
+    for (let index = 0; index < pdfIndexData.value.indexData[0].data.length; index++) {
+      hightLightText(pdfIndexData.value.indexData[0].data[index].content)
+      console.log(pdfIndexData.value.indexData[0].data[index].content)
+    }
+  } else {
+    removeAllTextHightLight()
+  }
+})
+
+onMounted(async () => {
   let it = JSON.parse(window.localStorage.getItem('it'))
   console.log(it)
   let path = it.path
-  const params = new URLSearchParams();
-  params.append('flag', '5');
-  params.append('data', path);
-  axios.get('/api?',{params}).then((res)=>{
-   console.log(res.data)
-    pdfUrl=res.data
+  const params = new URLSearchParams()
+  params.append('flag', '5')
+  params.append('data', path)
+  axios.get('/api?', { params }).then((res) => {
+    console.log(res.data)
+    pdfUrl = res.data
   })
   loadPdf()
   // 自动化索引
@@ -486,8 +545,6 @@ onMounted(async () => {
     pdfIndexData.value.indexData[key].id = key
   }
 })
-
-
 </script>
 
 <style scoped>

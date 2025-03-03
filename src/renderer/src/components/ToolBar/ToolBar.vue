@@ -1,9 +1,14 @@
 <template>
   <el-row :gutter="20">
-    <!-- <el-col :span="6" :offset="0">
-      <el-button-group> </el-button-group>
-    </el-col> -->
-    <el-col class="text-center" :span="24" :offset="0">
+    <el-col :span="6" :offset="0">
+      <!-- <el-button-group>
+
+      </el-button-group> -->
+      <el-button type="default" plain size="default" >
+        <router-link to="/">返回菜单</router-link>
+      </el-button>
+    </el-col>
+    <el-col class="text-center" :span="12" :offset="0">
       <el-button-group>
         <el-button type="success" plain icon="" @click="thumbnailsShow">缩略图</el-button>
         <el-button
@@ -13,17 +18,24 @@
           tag="el-switch"
           plain
           style="--el-switch-on-color: #13ce66"
-          >自动高亮</el-button
+          >添加自动高亮</el-button
         >
-        <!-- <el-button type="success" plain icon="" @click="">保存</el-button> -->
+        <el-button type="success" plain icon="" @click="saveEdit">保存</el-button>
         <el-button type="success" plain icon="" @click="renderDoc">导出文档</el-button>
       </el-button-group>
     </el-col>
-    <!-- <el-col :span="6" :offset="0">
+    <el-col :span="6" :offset="0">
       <el-button-group>
-
+        <el-button
+          v-model="pdfSetting.showHighlight"
+          type="success"
+          tag="el-checkbox"
+          size="small"
+          plain
+          @click=""
+        >高亮显示</el-button>
       </el-button-group>
-    </el-col> -->
+    </el-col>
   </el-row>
 </template>
 
@@ -35,10 +47,13 @@ import PizZipUtils from 'pizzip/utils/index.js'
 import { saveAs } from 'file-saver'
 import inputWord from '../../../../../resources/input.docx?asset'
 import { pinyin } from 'pinyin-pro'
+import axios from 'axios'
 
 const pdfSetting = inject('pdfSetting')
 const pdfIndexData = inject('pdfIndexData')
 const outputData = inject('outputData')
+const saveEdit = inject('saveEdit')
+
 function loadFile(url) {
   return new Promise((resolve, reject) => {
     PizZipUtils.getBinaryContent(url, (error, content) => {
@@ -58,36 +73,39 @@ const thumbnailsShow = () => {
 const processData = (data) => {
   // 按拼音排序
   data.sort((a, b) => {
-    const pinyinA = pinyin(a.content);
-    const pinyinB = pinyin(b.content);
-    return pinyinA.localeCompare(pinyinB);
-  });
+    const pinyinA = pinyin(a.content)
+    const pinyinB = pinyin(b.content)
+    return pinyinA.localeCompare(pinyinB)
+  })
 
   // 按首字母分组
-  const groupedData = []; // 改为数组
-  const groups = {}; // 临时对象，用于分组
+  const groupedData = [] // 改为数组
+  const groups = {} // 临时对象，用于分组
 
   data.forEach((item) => {
-    const firstLetter = pinyin(item.content, { pattern: 'first', toneType: 'none' })[0].toUpperCase();
+    const firstLetter = pinyin(item.content, {
+      pattern: 'first',
+      toneType: 'none'
+    })[0].toUpperCase()
     if (!groups[firstLetter]) {
-      groups[firstLetter] = { firstLetter, data: [] }; // 初始化分组
-      groupedData.push(groups[firstLetter]); // 将分组添加到数组
+      groups[firstLetter] = { firstLetter, data: [] } // 初始化分组
+      groupedData.push(groups[firstLetter]) // 将分组添加到数组
     }
-    groups[firstLetter].data.push(item); // 将数据添加到分组
-  });
+    groups[firstLetter].data.push(item) // 将数据添加到分组
+  })
 
-  return groupedData; // 返回数组
-};
+  return groupedData // 返回数组
+}
 
 // 处理每个 indexData 的 data
 
 const renderDoc = async () => {
   // 处理数据
   try {
-    outputData.value = {}; // 初始化 outputData
+    outputData.value = {} // 初始化 outputData
     pdfIndexData.value.indexData.forEach((item) => {
-      outputData.value[item.name] = processData(item.data); // 保存为数组
-    });
+      outputData.value[item.name] = processData(item.data) // 保存为数组
+    })
 
     // 加载模板文件
     const content = await loadFile(inputWord)
@@ -114,9 +132,20 @@ const renderDoc = async () => {
 </script>
 
 <style scoped>
-.el-switch__label.is-active {
-  span {
-    color: var(--el-color-success) !important;
+:deep(.el-switch__label.is-active) {
+  color: var(--el-color-success) !important;
+}
+:deep(.el-checkbox){
+  color: var(--el-color-success) !important;
+  :hover{
+    color: white !important;
   }
+}
+:deep(.el-checkbox__input.is-checked+.el-checkbox__label){
+  color: var(--el-color-success) !important;
+}
+:deep(.el-checkbox__input.is-checked .el-checkbox__inner){
+  background-color: var(--el-color-success) !important;
+  border-color: var(--el-color-success) !important;
 }
 </style>
