@@ -3,8 +3,6 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
-
-
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -22,11 +20,9 @@ function createWindow(): void {
     }
   })
 
-
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
-
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
@@ -57,28 +53,29 @@ app.whenReady().then(() => {
   })
 
   // IPC test
-  ipcMain.on('window-new', (event, args) => {
-      console.log(event)
-      new BrowserWindow({
-      width: 1000,
-      height: 800,
+  ipcMain.on('openProjectWindow', (event, args) => {
+    console.log(event)
+    new BrowserWindow({
+      width: 1600,
+      height: 900,
       show: true,
       title: args.title,
       autoHideMenuBar: true,
       maximizable: true,
       ...(process.platform === 'linux' ? { icon } : {}),
       webPreferences: {
-        preload: join(__dirname, '../preload/index.js'),
-        sandbox: false,
-        nodeIntegration: true,
-        contextIsolation: false,
-        webSecurity: false
+        // preload: join(__dirname, '../preload/index.js'),
+        // sandbox: false,
+        // nodeIntegration: true,
+        // contextIsolation: false,
+        // webSecurity: false
       }
-    }).on('page-title-updated', (event) => {
-      // 阻止默认行为，防止窗口标题被更新
-      event.preventDefault();
-    }).loadURL("http://localhost:5173/#/pdf")
-
+    })
+      .on('page-title-updated', (event) => {
+        // 阻止默认行为，防止窗口标题被更新
+        event.preventDefault()
+      })
+      .loadURL('http://localhost:5173/#/pdf')
   })
   ipcMain.on('ping', () => console.log('pong'))
 
@@ -102,6 +99,3 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app"s specific main process
 // code. You can also put them in separate files and require them here.
-
-
-

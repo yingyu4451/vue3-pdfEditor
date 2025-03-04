@@ -1,4 +1,4 @@
-import { contextBridge,ipcRenderer  } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import path from 'path'
 
@@ -21,8 +21,8 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.api = api
 }
-contextBridge.exposeInMainWorld('electron', {
-  startDrag: (fileName) => {
-    ipcRenderer.send('ondragstart', path.join(process.cwd(), fileName))
-  }
-})
+// contextBridge.exposeInMainWorld('electron', {
+//   startDrag: (fileName) => {
+//     ipcRenderer.send('ondragstart', path.join(process.cwd(), fileName))
+//   }
+// })

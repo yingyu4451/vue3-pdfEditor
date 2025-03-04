@@ -57,9 +57,9 @@ import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
 import RightAside from '@renderer/components/RightAside/RightAside.vue'
 import { ElMessage } from 'element-plus'
 
-const pdfModules = import.meta.glob('@resources/*.pdf')
+// const pdfModules = import.meta.glob('@resources/*.pdf')
 
-let pdfUrl = ref('')
+const pdfUrl = ref('')
 
 let pdfDoc = null
 // const pdfCanvas = ref(null)
@@ -553,39 +553,42 @@ watch(
   (newVal) => {
     console.log(newVal)
 
-  if (newVal.showHighlight) {
-    // console.log('if true')
-    for (let index = 0; index < pdfIndexData.value.indexData[0].data.length; index++) {
-      hightLightText(pdfIndexData.value.indexData[0].data[index].content)
-      console.log(pdfIndexData.value.indexData[0].data[index].content)
+    if (newVal.showHighlight) {
+      // console.log('if true')
+      for (let index = 0; index < pdfIndexData.value.indexData[0].data.length; index++) {
+        hightLightText(pdfIndexData.value.indexData[0].data[index].content)
+        console.log(pdfIndexData.value.indexData[0].data[index].content)
+      }
+    } else {
+      removeAllTextHightLight()
     }
-  } else {
-    removeAllTextHightLight()
   }
-})
+)
 
-onMounted(
-  async () => {
+onMounted(async () => {
   const it = JSON.parse(window.localStorage.getItem('it'))
   const path = it.path
-    const settingPath = it.settingPath
-    const param = new URLSearchParams()
+  const settingPath = it.settingPath
+  const param = new URLSearchParams()
   param.append('flag', '8')
   param.append('data', settingPath)
-  axios.get('/api?',{ params:param }).then((res)=>{
+  axios.get('/api?', { params: param }).then((res) => {
     pdfIndexData.value.indexData = res.data
+    console.log('res.data',res.data);
+    console.log('res pdfIndexData',pdfIndexData.value);
+
   })
   const params = new URLSearchParams()
   params.append('flag', '5')
   params.append('data', path)
   axios.get('/api?', { params }).then((base64PDF) => {
     console.log(base64PDF.data)
-    const base64Data = base64PDF.data.replace(/^data:application\/pdf;base64,/, '');
-    const binaryData = atob(base64Data);
-    const arrayBuffer = new ArrayBuffer(binaryData.length);
-    const uint8Array = new Uint8Array(arrayBuffer);
+    const base64Data = base64PDF.data.replace(/^data:application\/pdf;base64,/, '')
+    const binaryData = atob(base64Data)
+    const arrayBuffer = new ArrayBuffer(binaryData.length)
+    const uint8Array = new Uint8Array(arrayBuffer)
     for (let i = 0; i < binaryData.length; i++) {
-      uint8Array[i] = binaryData.charCodeAt(i);
+      uint8Array[i] = binaryData.charCodeAt(i)
     }
     pdfUrl.value = uint8Array
     loadPdf()
@@ -600,7 +603,7 @@ onMounted(
 })
 window.addEventListener('beforeunload', function (event) {
   saveEdit()
-});
+})
 </script>
 
 <style scoped>

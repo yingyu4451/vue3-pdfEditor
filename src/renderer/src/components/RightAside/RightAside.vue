@@ -235,15 +235,19 @@ const editRow = (scope) => {
 }
 
 watch(pdfIndexData.value, (newVal) => {
-  tagList.value= []
-  newVal.indexData[0].data.forEach((element,index) => {
-    if (element) {
-      tagList.value.push({
-        editing: false,
-        index:index
-      })
-    }
-  })
+  tagList.value = []
+  console.log(newVal.indexData[0])
+
+  if (newVal.indexData[0].data != 0) {
+    newVal.indexData[0].data.forEach((element, index) => {
+      if (element) {
+        tagList.value.push({
+          editing: false,
+          index: index
+        })
+      }
+    })
+  }
 })
 </script>
 
