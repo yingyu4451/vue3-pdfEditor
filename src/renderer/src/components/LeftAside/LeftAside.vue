@@ -83,7 +83,7 @@ const renderAllPages = inject('renderAllPages')
 
     span {
       background-color: var(--el-color-success);
-      @apply 2xl:left-14;
+      @apply 2xl:left-10 2k:left-14 text-white;
     }
 
     img {

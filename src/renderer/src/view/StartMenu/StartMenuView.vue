@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import er from '../../../../../resources/setting/projects.json'
 import router from '../../router/router'
 import axios from 'axios'
-import {windowCreate} from "../../js/plugin"
+// import {windowCreate} from "../../js/plugin"
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const dialogVisible = ref(false)

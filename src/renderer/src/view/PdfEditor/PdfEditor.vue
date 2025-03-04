@@ -10,7 +10,7 @@
         </el-header>
         <el-main>
           <div id="pdfViewer" class="relative">
-            <el-scrollbar ref="pdfContainerScroll" max-height="100vh">
+            <el-scrollbar ref="pdfContainerScroll" max-height="100vmax" @scroll="scrollBarMove">
               <!-- 添加按钮 -->
               <el-dropdown style="display: none" @command="addIndexItem">
                 <el-button size="small" type="success">
@@ -28,7 +28,7 @@
                 </template>
               </el-dropdown>
               <!-- 用于动态创建 canvas 的容器 -->
-              <div ref="pdfContainer" class="w-max mx-auto relative"></div>
+              <div id="pdfContainer" ref="pdfContainer" class="w-max mx-auto relative"></div>
             </el-scrollbar>
           </div>
         </el-main>
@@ -80,19 +80,21 @@ const pdfIndexData = ref({
       id: 1,
       title: '标目',
       data: [
-        { type: 'biaoMu', pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] },
-        { type: 'biaoMu', pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] }
+        // type: 'biaoMu', pdfPage: ['1', '3'], content: '工作管理', highlight: true, canZhao: []
       ]
     },
     {
       id: 1,
       name: 'chuangXin',
       title: '创新词汇',
-      data: [
-        { pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] },
-        { pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] }
-      ]
+      data: []
     }
+    // {
+    //   id: 1,
+    //   name: 'canZhao',
+    //   title: '参照',
+    //   data: []
+    // }
   ]
 })
 
@@ -107,7 +109,8 @@ const pdfSetting = ref({
   pdfViewer: {
     scale: 100,
     leftAsideShow: true,
-    rightAsideShow: true
+    rightAsideShow: true,
+    containerHeight: 0
   },
   pdfThumbnails: {
     scale: 0.25
@@ -117,6 +120,7 @@ const currentKeyDownRef = ref()
 const outputData = ref()
 const editDialogVisible = ref(false)
 const dialogResult = ref()
+const scrollBarData = ref()
 
 provide('pdfSetting', pdfSetting)
 provide('pdfCurrentPage', pdfCurrentPage)
@@ -234,6 +238,7 @@ const loadPdf = async () => {
 //   }
 // }
 
+// 滚动事件
 const scrollpage = (page) => {
   const pageElement = document.getElementById(`page-${page}`)
 
@@ -323,6 +328,8 @@ const renderAllPages = async () => {
 
     pdfContainer.value.appendChild(div)
   }
+  pdfSetting.value.pdfViewer.containerHeight =
+    document.querySelector('#pdfContainer').clientHeight + 'px'
   await extractTextFormPDF()
 }
 
@@ -336,6 +343,7 @@ const removeAllTextHightLight = () => {
   highlightedElements.forEach((element) => {
     // 获取高亮元素的父节点
     const parent = element.parentNode
+
     // 创建文本节点，内容为高亮元素的文本
     const textNode = document.createTextNode(element.textContent)
     // 用文本节点替换高亮元素
@@ -345,62 +353,74 @@ const removeAllTextHightLight = () => {
   // 清空 pdfPageList
 }
 
-const removeTextHightLight = () => {
-  // 查找所有高亮元素
-  const highlightedElements = document.querySelectorAll(
-    '#pdfViewer span.bg-yellow-400.bg-opacity-25'
-  )
-
-  // 遍历所有高亮元素
-  highlightedElements.forEach((element) => {
-    // 获取高亮元素的父节点
-    const parent = element.parentNode
-    // 创建文本节点，内容为高亮元素的文本
-    const textNode = document.createTextNode(element.textContent)
-    // 用文本节点替换高亮元素
-    parent.replaceChild(textNode, element)
-  })
-
-  // 清空 pdfPageList
-}
-
-// 高亮文本
-const hightLightText = (textToHighlight) => {
+const removeTextHightLight = (textToRemoveHighlight) => {
   const walker = document.createTreeWalker(
     document.querySelector('#pdfViewer'),
-    NodeFilter.SHOW_TEXT,
+    NodeFilter.SHOW_ELEMENT, // 查找元素节点
     null,
     false
   )
 
   let node
-  const nodesToHighlight = []
+  const highlightNodes = []
 
-  // 遍历所有文本节点，查找匹配的文本
+  // 遍历所有元素节点，查找高亮的 <span> 元素
   while ((node = walker.nextNode())) {
-    if (node.nodeValue.includes(textToHighlight)) {
-      nodesToHighlight.push(node)
+    if (
+      node.nodeName === 'SPAN' &&
+      node.classList.contains('bg-yellow-400') &&
+      node.textContent === textToRemoveHighlight // 检查文本内容是否匹配
+    ) {
+      highlightNodes.push(node)
     }
   }
 
-  // 为匹配的文本节点添加高亮效果
-  nodesToHighlight.forEach((node) => {
-    pdfPageList.value.push(node.parentElement.attributes.getNamedItem('data-page').value)
-    pdfPageList.value = [...new Set(pdfPageList.value)]
-    if (pdfSetting.value.autoHighlight) {
-      const text = node.nodeValue
-      const newText = text.replace(
-        new RegExp(textToHighlight, 'g'),
-        `<span class="bg-yellow-400 bg-opacity-25">${textToHighlight}</span>`
-      )
-      const temp = document.createElement('div')
-      temp.innerHTML = newText
-      while (temp.firstChild) {
-        node.parentNode.insertBefore(temp.firstChild, node)
-      }
-      node.parentNode.removeChild(node)
-    }
+  // 移除高亮效果，恢复原始文本
+  highlightNodes.forEach((highlightNode) => {
+    const textNode = document.createTextNode(highlightNode.textContent)
+    highlightNode.parentNode.replaceChild(textNode, highlightNode)
   })
+}
+
+// 高亮文本
+const hightLightText = (textToHighlight) => {
+  if (pdfSetting.value.autoHighlight) {
+    const walker = document.createTreeWalker(
+      document.querySelector('#pdfViewer'),
+      NodeFilter.SHOW_TEXT,
+      null,
+      false
+    )
+
+    let node
+    const nodesList = []
+
+    // 遍历所有文本节点，查找匹配的文本
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue.includes(textToHighlight)) {
+        nodesList.push(node)
+        pdfPageList.value.push(node.parentElement.attributes.getNamedItem('data-page').value)
+        pdfPageList.value = [...new Set(pdfPageList.value)]
+      }
+    }
+
+    // 为匹配的文本节点添加高亮效果
+    if (pdfSetting.value.showHighlight) {
+      nodesList.forEach((node) => {
+        const text = node.nodeValue
+        const newText = text.replace(
+          new RegExp(textToHighlight, 'g'),
+          `<span class="bg-yellow-400 bg-opacity-25">${textToHighlight}</span>`
+        )
+        const temp = document.createElement('div')
+        temp.innerHTML = newText
+        while (temp.firstChild) {
+          node.parentNode.insertBefore(temp.firstChild, node)
+        }
+        node.parentNode.removeChild(node)
+      })
+    }
+  }
 }
 
 // 创建所有页面的缩略图
@@ -431,14 +451,16 @@ const addIndexItem = (index) => {
     pdfPage: pdfPageList.value,
     content: pdfSelectionText.value,
     highlight: pdfSetting.value.autoHighlight,
-    type: pdfIndexData.value.indexData[index].name
+    type: pdfIndexData.value.indexData[index].name,
+    canZhao: []
   })
   if (index == 1) {
     pdfIndexData.value.indexData[0].data.push({
       pdfPage: pdfPageList.value,
       content: pdfSelectionText.value,
       highlight: pdfSetting.value.autoHighlight,
-      type: pdfIndexData.value.indexData[index].name
+      type: pdfIndexData.value.indexData[index].name,
+      canZhao: []
     })
   }
   // if (event == 'biaoMu') {
@@ -459,18 +481,25 @@ const addIndexItem = (index) => {
   pdfPageList.value = []
 }
 // pdf滚动事件
-const pdfWheel = (event) => {
-  // 放大缩小pdf
-  if (currentKeyDownRef.value === 'Control') {
-    if (event.deltaY < 0) {
-      pdfSetting.value.pdfViewer.scale += 5
-      renderAllPages()
-    } else {
-      pdfSetting.value.pdfViewer.scale -= 5
-      renderAllPages()
-    }
-  }
+// const pdfWheel = (event) => {
+//   // 放大缩小pdf
+//   if (currentKeyDownRef.value === 'Control') {
+//     if (event.deltaY < 0) {
+//       pdfSetting.value.pdfViewer.scale += 5
+//       renderAllPages()
+//     } else {
+//       pdfSetting.value.pdfViewer.scale -= 5
+//       renderAllPages()
+//     }
+//   }
+// }
+
+const scrollBarMove = (data) => {
+  // console.log(pdfContainerScroll.value,data);
+  const pdfContainer = document.querySelector('#pdfContainer')
+  console.log(pdfContainer.scrollHeight)
 }
+
 // 自定义排序
 const sortText = (a, b) => {
   // console.log(a, b)
@@ -501,6 +530,7 @@ function saveEdit() {
 
 provide('removeTextHightLight', removeTextHightLight)
 provide('removeAllTextHightLight', removeAllTextHightLight)
+provide('hightLightText', hightLightText)
 provide('sortText', sortText)
 provide('scrollpage', scrollpage)
 provide('renderAllPages', renderAllPages)
@@ -512,18 +542,27 @@ provide('dialogResult', dialogResult)
 //   console.log('pdfIndexData New', newVal)
 // })
 
-watch(pdfSetting.value, (newVal) => {
-  // console.log(newVal.showHighlight)
+watch(
+  () => pdfSetting.value.showHighlight,
+  (newVal) => {
+    console.log(newVal)
 
-  if (newVal.showHighlight) {
-    // console.log('if true')
-    for (let index = 0; index < pdfIndexData.value.indexData[0].data.length; index++) {
-      hightLightText(pdfIndexData.value.indexData[0].data[index].content)
-      console.log(pdfIndexData.value.indexData[0].data[index].content)
+    if (newVal) {
+      // console.log('if true')
+      for (let index = 0; index < pdfIndexData.value.indexData[0].data.length; index++) {
+        if (pdfIndexData.value.indexData[0].data[index].highlight) {
+          hightLightText(pdfIndexData.value.indexData[0].data[index].content)
+          //  console.log(pdfIndexData.value.indexData[0].data[index].content)
+        }
+      }
+    } else {
+      removeAllTextHightLight()
     }
-  } else {
-    removeAllTextHightLight()
   }
+)
+
+watch(scrollBarData.value, (newVal) => {
+  console.log(newVal)
 })
 
 onMounted(async () => {

@@ -6,7 +6,11 @@ module.exports = {
     './src/renderer/src/**/**/*.{js,ts,jsx,tsx,vue}'
   ],
   theme: {
-    extend: {}
+    extend: {
+      screens: {
+        '2k': '2048px'
+      }
+    }
   },
   plugins: []
 }

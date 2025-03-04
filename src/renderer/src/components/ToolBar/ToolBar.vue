@@ -4,7 +4,7 @@
       <!-- <el-button-group>
 
       </el-button-group> -->
-      <el-button type="default" plain size="default" >
+      <el-button type="default" plain size="default">
         <router-link to="/">返回菜单</router-link>
       </el-button>
     </el-col>
@@ -32,8 +32,8 @@
           tag="el-checkbox"
           size="small"
           plain
-          @click=""
-        >高亮显示</el-button>
+          >高亮显示</el-button
+        >
       </el-button-group>
     </el-col>
   </el-row>
@@ -135,16 +135,16 @@ const renderDoc = async () => {
 :deep(.el-switch__label.is-active) {
   color: var(--el-color-success) !important;
 }
-:deep(.el-checkbox){
+:deep(.el-checkbox) {
   color: var(--el-color-success) !important;
-  :hover{
+  :hover {
     color: white !important;
   }
 }
-:deep(.el-checkbox__input.is-checked+.el-checkbox__label){
+:deep(.el-checkbox__input.is-checked + .el-checkbox__label) {
   color: var(--el-color-success) !important;
 }
-:deep(.el-checkbox__input.is-checked .el-checkbox__inner){
+:deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
   background-color: var(--el-color-success) !important;
   border-color: var(--el-color-success) !important;
 }
