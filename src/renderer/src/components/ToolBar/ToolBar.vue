@@ -54,6 +54,10 @@ const pdfIndexData = inject('pdfIndexData')
 const outputData = inject('outputData')
 const saveEdit = inject('saveEdit')
 
+function clo(){
+  window.close()
+}
+
 function loadFile(url) {
   return new Promise((resolve, reject) => {
     PizZipUtils.getBinaryContent(url, (error, content) => {
