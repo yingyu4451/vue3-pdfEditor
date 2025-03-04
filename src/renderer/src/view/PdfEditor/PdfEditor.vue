@@ -55,10 +55,11 @@ import { data } from 'autoprefixer'
 import ToolBar from '@renderer/components/ToolBar/ToolBar.vue'
 import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
 import RightAside from '@renderer/components/RightAside/RightAside.vue'
+import { ElMessage } from 'element-plus'
 
 const pdfModules = import.meta.glob('@resources/*.pdf')
 
-let pdfUrl = pdf
+let pdfUrl = ref('')
 
 let pdfDoc = null
 // const pdfCanvas = ref(null)
@@ -80,8 +81,6 @@ const pdfIndexData = ref({
       id: 1,
       title: '标目',
       data: [
-        { type: 'biaoMu', pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] },
-        { type: 'biaoMu', pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] }
       ]
     },
     {
@@ -89,8 +88,6 @@ const pdfIndexData = ref({
       name: 'chuangXin',
       title: '创新词汇',
       data: [
-        { pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] },
-        { pdfPage: ['1', '3'], content: '工作管理', highlight: true, chanZhao: [] }
       ]
     }
   ]
@@ -191,7 +188,7 @@ document.addEventListener('mousemove', (event) => {
 // 加载 PDF 文件
 const loadPdf = async () => {
   try {
-    const loadingTask = pdfjsLib.getDocument(pdfUrl)
+    const loadingTask = pdfjsLib.getDocument({ data: pdfUrl.value })
     pdfDoc = await loadingTask.promise
     pdfTotalPages.value = pdfDoc.numPages
     loading.value = false
@@ -479,7 +476,7 @@ const sortText = (a, b) => {
 
 function saveEdit() {
   //获取需要保存的标目列表
-  const headings = pdfIndexData.value.indexData[0].data
+  const headings = pdfIndexData.value.indexData
   //配置参数
   const params = new URLSearchParams()
   const it = JSON.parse(window.localStorage.getItem('it'))
@@ -488,7 +485,12 @@ function saveEdit() {
   params.append('data', JSON.stringify(headings))
   params.append('path', path)
   //通过axios请求方式将标目列表保存至配置文件
-  axios.get('/api', { params }).then((res) => {})
+  axios.get('/api', { params }).then((res) => {
+    ElMessage({
+      message: '保存成功',
+      type: 'success'
+    })
+  })
 }
 
 // 监听页码变化并重新渲染
@@ -526,18 +528,33 @@ watch(pdfSetting.value, (newVal) => {
   }
 })
 
-onMounted(async () => {
-  let it = JSON.parse(window.localStorage.getItem('it'))
-  console.log(it)
-  let path = it.path
+onMounted(
+  async () => {
+  const it = JSON.parse(window.localStorage.getItem('it'))
+  const path = it.path
+    const settingPath = it.settingPath
+    const param = new URLSearchParams()
+  param.append('flag', '8')
+  param.append('data', settingPath)
+  axios.get('/api?',{ params:param }).then((res)=>{
+    pdfIndexData.value.indexData = res.data
+  })
   const params = new URLSearchParams()
   params.append('flag', '5')
   params.append('data', path)
-  axios.get('/api?', { params }).then((res) => {
-    console.log(res.data)
-    pdfUrl = res.data
+  axios.get('/api?', { params }).then((base64PDF) => {
+    console.log(base64PDF.data)
+    const base64Data = base64PDF.data.replace(/^data:application\/pdf;base64,/, '');
+    const binaryData = atob(base64Data);
+    const arrayBuffer = new ArrayBuffer(binaryData.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < binaryData.length; i++) {
+      uint8Array[i] = binaryData.charCodeAt(i);
+    }
+    pdfUrl.value = uint8Array
+    loadPdf()
   })
-  loadPdf()
+
   // 自动化索引
   for (const key in pdfIndexTable.value) {
     // console.log(key, pdfIndexTable.value[key])
@@ -545,6 +562,9 @@ onMounted(async () => {
     pdfIndexData.value.indexData[key].id = key
   }
 })
+window.addEventListener('beforeunload', function (event) {
+  saveEdit()
+});
 </script>
 
 <style scoped>

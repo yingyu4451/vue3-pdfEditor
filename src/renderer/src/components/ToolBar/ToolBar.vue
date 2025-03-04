@@ -4,8 +4,8 @@
       <!-- <el-button-group>
 
       </el-button-group> -->
-      <el-button type="default" plain size="default" >
-        <router-link to="/">返回菜单</router-link>
+      <el-button type="default" plain size="default" @click="clo">
+        返回菜单
       </el-button>
     </el-col>
     <el-col class="text-center" :span="12" :offset="0">
@@ -53,6 +53,10 @@ const pdfSetting = inject('pdfSetting')
 const pdfIndexData = inject('pdfIndexData')
 const outputData = inject('outputData')
 const saveEdit = inject('saveEdit')
+
+function clo(){
+  window.close()
+}
 
 function loadFile(url) {
   return new Promise((resolve, reject) => {

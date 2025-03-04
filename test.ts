@@ -92,12 +92,19 @@ http
         writeFile(path, JSON.stringify(tempList), (err) => {
         })
       })
+      response.end('ok');
     }
     if(flag==='7'){
       const settingPath = url.parse(request.url, true).query.data
       console.log(settingPath)
-
       unlink(settingPath,() => {})
+    }
+    if(flag==='8'){
+      let seting = url.parse(request.url, true).query.data
+      readFile(seting.toString(), (err, data) => {
+        console.log(JSON.stringify(eval(data.toString())[1]))
+         response.end(JSON.stringify(eval(data.toString())[1]));
+      })
     }
   })
   .listen(8888)
