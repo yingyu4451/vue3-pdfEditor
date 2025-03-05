@@ -15,6 +15,7 @@
               v-model="indexTableRowData.row.type"
               :options="pdfIndexDataNameList"
               size="default"
+              @change="changeType"
             >
               <template #default="scope">
                 <div>
@@ -57,6 +58,27 @@ const pdfIndexDataNameList = ref([])
 const changeZhuShi = () => {
   if (indexTableRowData.value.row.zhuShi.trim() != '') {
     indexTableRowData.value.row.hasZhuShi = true
+  }
+}
+
+const changeType = (val) => {
+  if (val == 'chuangXin') {
+    // console.log(pdfIndexData.value.indexData[1].data);
+
+    pdfIndexData.value.indexData[1].data.push(indexTableRowData.value.row)
+  } else {
+    if (pdfIndexData.value.indexData[1].length != 0) {
+      console.log(pdfIndexData.value.indexData[1].data);
+
+      pdfIndexData.value.indexData[1].data.forEach((element, index) => {
+        if (indexTableRowData.value.row.content == element.content) {
+          // console.log('element',element)
+          // console.log('indexTableRowData.value.row',indexTableRowData.value.row.content)
+
+          pdfIndexData.value.indexData[1].data.splice(index, 1)
+        }
+      })
+    }
   }
 }
 
