@@ -7,17 +7,10 @@
       :name="item.name"
     >
       <!-- content -->
-      <el-table
-        ref="pdfIndexTable"
-        :data="item.data"
-        stripe
-        style="width: 100%"
-        size="small"
-        @sort-change="updateTable(item[index], index)"
-      >
+      <el-table ref="pdfIndexTable" :data="item.data" stripe style="width: 100%" size="small">
         <!-- 高亮 -->
         <el-table-column
-          v-if="item.name == 'biaoMu' || item.name == 'chuangXin'"
+          v-if="item.name == 'biaoMu'"
           width="40px"
           label="高亮"
           header-align="center"
@@ -59,7 +52,7 @@
           </template>
         </el-table-column>
         <!-- 参照 -->
-        <el-table-column v-if="item.name == 'biaoMu' || item.name == 'chuangXin'" label="参照">
+        <el-table-column v-if="item.name == 'biaoMu'" label="参照">
           <template #default="canZhaoScope">
             <el-tag
               v-for="tag in canZhaoScope.row.canZhao"
@@ -72,12 +65,12 @@
               {{ tag }}
             </el-tag>
             <el-input
-              v-if="
+              v-show="
                 tagList[canZhaoScope.$index].editing &
                 (tagList[canZhaoScope.$index].index == canZhaoScope.$index)
               "
-              ref="InputRef"
-              v-model="inputValue"
+              ref="canZhaoInputRef"
+              v-model="canZhaoInput"
               size="small"
               @keyup.enter="handleInputConfirm(canZhaoScope)"
               @blur="handleInputConfirm(canZhaoScope)"
@@ -96,9 +89,11 @@
         <el-table-column v-if="item.name == 'biaoMu' || item.name == 'chuangXin'" label="选项">
           <template #default="optionScope">
             <el-button-group>
-              <el-button link type="primary" size="small" @click.prevent="editRow(optionScope)">
-                编辑
-              </el-button>
+              <el-tooltip content="注释在这里" effect="light">
+                <el-button link type="primary" size="small" @click.prevent="editRow(optionScope)">
+                  编辑
+                </el-button>
+              </el-tooltip>
               <el-button link type="danger" size="small">
                 <el-popconfirm
                   title="你确定要删除吗?"
@@ -114,18 +109,20 @@
           </template>
         </el-table-column>
         <!-- 参照表格 -->
-        <!-- <el-table-column
-          v-if="item.name == 'canZhao'"
-          prop="canZhao"
-          :sort-method="sortText"
-          label="文本"
-        />
-        <el-table-column
-          v-if="item.name == 'canZhao'"
-          prop="content"
-          :sort-method="sortText"
-          label="见"
-        /> -->
+      </el-table>
+    </el-collapse-item>
+    <el-collapse-item title="参照 & 注释" name="canZhao">
+      <!-- content -->
+      <el-table
+        ref="pdfIndexTable"
+        :data="pdfIndexData.indexData[0].data"
+        stripe
+        style="width: 100%"
+        size="small"
+      >
+      <el-table-column prop="content" label="标目" />
+        <el-table-column prop="canZhao" label="参照" />
+        <el-table-column prop="zhuShi" label="注释" />
       </el-table>
     </el-collapse-item>
   </el-collapse>
@@ -133,7 +130,7 @@
 </template>
 
 <script setup>
-import { inject, ref, watch } from 'vue'
+import { inject, nextTick, provide, ref, watch } from 'vue'
 import EditDialog from '@renderer/components/Dialog/EditDialog.vue'
 
 const pdfIndexData = inject('pdfIndexData')
@@ -144,31 +141,40 @@ const pdfIndexTable = inject('pdfIndexTable')
 const pdfsetting = inject('pdfSetting')
 const scrollpage = inject('scrollpage')
 const editDialogVisible = inject('editDialogVisible')
-const inputValue = ref('')
-const InputRef = ref()
+
+const indexTableRowData = ref()
+const canZhaoInput = ref('')
+const canZhaoInputRef = ref()
 const tagList = ref([])
 // const inputVisible = ref({
 //   action: false,
 //   index: null
 // })
+provide('indexTableRowData', indexTableRowData)
+
 let tableInstance
 
 const handleClose = (scope, tag) => {
   console.log(scope)
 
   scope.row.canZhao.splice(scope.row.canZhao.indexOf(tag), 1)
+  scope.row.hasCanZhao = false
 }
 
 const showInput = (scope) => {
   tagList.value[scope.$index].editing = true
+  nextTick(() => {
+    canZhaoInputRef.value[scope.$index].focus()
+  })
 }
 
 const handleInputConfirm = (scope) => {
-  if (inputValue.value) {
-    scope.row.canZhao.push(inputValue.value)
+  if (canZhaoInput.value.trim() != '') {
+    scope.row.canZhao.push(canZhaoInput.value)
+    scope.row.hasCanZhao = true
   }
   tagList.value[scope.$index].editing = false
-  inputValue.value = ''
+  canZhaoInput.value = ''
 }
 
 const changeHighLight = (scope) => {
@@ -261,5 +267,13 @@ watch(pdfIndexData.value, (newVal) => {
 }
 .tablePageLink {
   @apply px-1 text-black hover:text-lime-500;
+}
+
+:deep(.el-checkbox__input.is-checked + .el-checkbox__label) {
+  color: var(--el-color-success) !important;
+}
+:deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+  background-color: var(--el-color-success) !important;
+  border-color: var(--el-color-success) !important;
 }
 </style>

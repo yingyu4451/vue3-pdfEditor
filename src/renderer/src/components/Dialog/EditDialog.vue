@@ -9,25 +9,36 @@
       @close="editDialogVisible = false"
     >
       <div>
-        <el-form-item label="数据类型：" size="default">
-          <el-segmented
-            v-model="indexTableRowData.row.type"
-            :options="pdfIndexDataNameList"
-            size="default"
-          >
-            <template #default="scope">
-              <div>
-                <div>{{ scope.item.label }}</div>
-              </div>
-            </template>
-          </el-segmented>
-        </el-form-item>
-        <!-- <el-form-item label="参照列表：" size="default">
-        </el-form-item> -->
+        <el-form label-position="right" label-width="130px" size="default">
+          <el-form-item label="数据类型：" size="default">
+            <el-segmented
+              v-model="indexTableRowData.row.type"
+              :options="pdfIndexDataNameList"
+              size="default"
+            >
+              <template #default="scope">
+                <div>
+                  <div>{{ scope.item.label }}</div>
+                </div>
+              </template>
+            </el-segmented>
+          </el-form-item>
+          <el-form-item label="注释：" size="default">
+            <el-input
+              v-model="indexTableRowData.row.zhuShi"
+              size="default"
+              label=""
+              maxlength="50px"
+              placeholder=""
+              @change="changeZhuShi"
+            >
+            </el-input>
+          </el-form-item>
+        </el-form>
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="editDialogVisible = false">取消</el-button>
+          <!-- <el-button @click="editDialogVisible = false">取消</el-button> -->
           <el-button type="primary" @click="editDialogVisible = false"> 确定 </el-button>
         </div>
       </template>
@@ -40,7 +51,14 @@ import { inject, onMounted, ref } from 'vue'
 
 const editDialogVisible = inject('editDialogVisible')
 const pdfIndexData = inject('pdfIndexData')
+const indexTableRowData = inject('indexTableRowData')
 const pdfIndexDataNameList = ref([])
+
+const changeZhuShi = () => {
+  if (indexTableRowData.value.row.zhuShi.trim() != '') {
+    indexTableRowData.value.row.hasZhuShi = true
+  }
+}
 
 onMounted(() => {
   pdfIndexData.value.indexData.forEach((element) => {

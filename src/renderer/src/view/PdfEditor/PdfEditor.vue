@@ -384,43 +384,51 @@ const removeTextHightLight = (textToRemoveHighlight) => {
 }
 
 // 高亮文本
-const hightLightText = (textToHighlight) => {
-  if (pdfSetting.value.autoHighlight) {
-    const walker = document.createTreeWalker(
-      document.querySelector('#pdfViewer'),
-      NodeFilter.SHOW_TEXT,
-      null,
-      false
-    )
+const hightLightText = (HighLightText) => {
 
-    let node
-    const nodesList = []
+  // 条件判断
+  if (
+    (pdfSetting.value.autoHighlight && !pdfSetting.value.showHighlight) || // 情况1
+    (!pdfSetting.value.autoHighlight && !pdfSetting.value.showHighlight)   // 情况2
+  ) {
+    console.log('不通过：autoHighlight 和 showHighlight 的条件不满足');
+    return; // 不通过，直接返回
+  }
 
-    // 遍历所有文本节点，查找匹配的文本
-    while ((node = walker.nextNode())) {
-      if (node.nodeValue.includes(textToHighlight)) {
-        nodesList.push(node)
-        pdfPageList.value.push(node.parentElement.attributes.getNamedItem('data-page').value)
-        pdfPageList.value = [...new Set(pdfPageList.value)]
+  const walker = document.createTreeWalker(
+    document.querySelector('#pdfViewer'),
+    NodeFilter.SHOW_TEXT,
+    null,
+    false
+  )
+
+  let node
+  const nodesList = []
+
+  // 遍历所有文本节点，查找匹配的文本
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.includes(HighLightText)) {
+      nodesList.push(node)
+      pdfPageList.value.push(node.parentElement.attributes.getNamedItem('data-page').value)
+      pdfPageList.value = [...new Set(pdfPageList.value)]
+    }
+  }
+
+  // 为匹配的文本节点添加高亮效果
+  if (pdfSetting.value.showHighlight) {
+    nodesList.forEach((node) => {
+      const text = node.nodeValue
+      const newText = text.replace(
+        new RegExp(HighLightText, 'g'),
+        `<span class="bg-yellow-400 bg-opacity-25">${HighLightText}</span>`
+      )
+      const temp = document.createElement('div')
+      temp.innerHTML = newText
+      while (temp.firstChild) {
+        node.parentNode.insertBefore(temp.firstChild, node)
       }
-    }
-
-    // 为匹配的文本节点添加高亮效果
-    if (pdfSetting.value.showHighlight) {
-      nodesList.forEach((node) => {
-        const text = node.nodeValue
-        const newText = text.replace(
-          new RegExp(textToHighlight, 'g'),
-          `<span class="bg-yellow-400 bg-opacity-25">${textToHighlight}</span>`
-        )
-        const temp = document.createElement('div')
-        temp.innerHTML = newText
-        while (temp.firstChild) {
-          node.parentNode.insertBefore(temp.firstChild, node)
-        }
-        node.parentNode.removeChild(node)
-      })
-    }
+      node.parentNode.removeChild(node)
+    })
   }
 }
 
@@ -447,7 +455,11 @@ const createThumbnails = async () => {
 }
 // 添加数据
 const addIndexItem = (index) => {
-  hightLightText(pdfSelectionText.value)
+  if (pdfSetting.value.autoHighlight) {
+    hightLightText(pdfSelectionText.value)
+  }else{
+    hightLightText(pdfSelectionText.value)
+  }
   pdfIndexData.value.indexData[index].data.push({
     pdfPage: pdfPageList.value,
     content: pdfSelectionText.value,
@@ -551,12 +563,14 @@ provide('dialogResult', dialogResult)
 watch(
   () => pdfSetting.value.showHighlight,
   (newVal) => {
-    console.log(newVal)
-
-    if (newVal.showHighlight) {
-      // console.log('if true')
+    if (newVal) {
+      console.log('if true')
       for (let index = 0; index < pdfIndexData.value.indexData[0].data.length; index++) {
-        hightLightText(pdfIndexData.value.indexData[0].data[index].content)
+        console.log(pdfIndexData.value.indexData[0].data[index].highlight);
+        if (pdfIndexData.value.indexData[0].data[index].highlight) {
+          hightLightText(pdfIndexData.value.indexData[0].data[index].content)
+        }
+
         console.log(pdfIndexData.value.indexData[0].data[index].content)
       }
     } else {
