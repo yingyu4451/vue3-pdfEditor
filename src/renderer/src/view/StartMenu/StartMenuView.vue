@@ -74,15 +74,21 @@ function delProject(item, key) {
     draggable: true
   })
     .then(() => {
+      const baseURL = import.meta.env.PROD
+        ? import.meta.env.PROD_API_URL
+        : '/api';
       const params = new URLSearchParams()
       er.splice(key, 1)
       params.append('flag', '2')
       params.append('data', JSON.stringify(er))
-      axios.get('/api?', { params: params }).then((res) => {})
+      axios.get(baseURL, { params: params }).then((res) => {})
       const params2 = new URLSearchParams()
       params2.append('flag', '7')
       params2.append('data', item.settingPath)
-      axios.get('/api?', { params: params2 }).then((res) => {})
+      axios.get(baseURL, { params: params2 }).then((res) => {}).catch(err=>{
+        console.log(err)
+        console.log(err.location)
+      })
       ElMessage({
         type: 'success',
         message: '删除成功'

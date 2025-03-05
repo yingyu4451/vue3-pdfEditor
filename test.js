@@ -1,8 +1,22 @@
 const { writeFile,readFile,createReadStream,unlink } = require('fs-extra')
 const http = require('http')
 const url = require('url')
+
 http
   .createServer(function (request, response) {
+    // 设置 CSP 和 CORS 响应头
+    response.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self' http://localhost:8008");
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    response.setHeader('Access-Control-Max-Age', '86400');
+
+    // 处理 OPTIONS 预检请求
+    if (request.method === 'OPTIONS') {
+      response.writeHead(204); // 204 No Content
+      response.end();
+      return;
+    }
     const flag=url.parse(request.url, true).query.flag
     //读取配置文件并返回
     if(flag==='1'){
@@ -143,6 +157,6 @@ http
       }
     }
   })
-  .listen(8888)
-
+  .listen(8008)
+console.log('启动'+8008)
 

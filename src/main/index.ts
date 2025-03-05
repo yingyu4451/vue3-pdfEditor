@@ -1,7 +1,13 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
-import { join } from 'path'
+import path, { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+import { exec } from 'node:child_process'
+
+
+
 
 function createWindow(): void {
   // Create the browser window.
@@ -35,6 +41,13 @@ function createWindow(): void {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+// 生产环境加载打包后的文件
+  if (import.meta.env.PROD) {
+    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+  } else {
+    mainWindow.loadURL('http://localhost:5173'); // Vite 开发服务器
+    mainWindow.webContents.openDevTools();
   }
 }
 
@@ -78,7 +91,15 @@ app.whenReady().then(() => {
       .loadURL('http://localhost:5173/#/pdf')
   })
   ipcMain.on('ping', () => console.log('pong'))
-
+// 直接执行 node test.js 脚本
+  exec(`node test.js`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`执行脚本时出错: ${error}`);
+      return;
+    }
+    console.log(`脚本输出: ${stdout}`);
+    console.error(`脚本错误输出: ${stderr}`);
+  });
   createWindow()
 
   app.on('activate', function () {

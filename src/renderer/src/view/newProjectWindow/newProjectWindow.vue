@@ -4,6 +4,7 @@ import er from '../../../../../resources/setting/projects.json'
 import axios from 'axios'
 import router from '../../router/router'
 
+
 const name = ref('')
 const projects = ref()
 const filePath = ref('')
@@ -19,6 +20,9 @@ const setingPath = ref('')
 const lastOpenTime = ref('')
 
 function selectFile(flag1) {
+  const baseURL = import.meta.env.PROD
+    ? import.meta.env.PROD_API_URL
+    : '/api';
   const input = document.createElement('input')
   input.type = 'file'
   // input.accept = '.pdf'
@@ -35,13 +39,14 @@ function selectFile(flag1) {
       console.log(input.value)
 
     }else {
+
       console.log(2)
       setingPath.value=file.path
       console.log(input)
       const params = new URLSearchParams();
       params.append('flag', '1');
       params.append('data', setingPath.value);
-      axios.get('/api?',{params}).then((data)=>{
+      axios.get(baseURL,{params}).then((data)=>{
         console.log(data.data)
         // router.back()
         filePath.value=data.data.path
@@ -52,6 +57,9 @@ function selectFile(flag1) {
         projectCreatePerson.value=data.data.projectCreatePerson
         setingPath.value=data.data.settingPath
         lastOpenTime.value=data.data.lastOpenTime
+      }).catch(err=>{
+        console.log(err)
+        console.log(err.location.href)
       })
     }
 
@@ -60,6 +68,9 @@ function selectFile(flag1) {
 }
 function newProject(edit) {
   const params = new URLSearchParams();
+  const baseURL = import.meta.env.PROD
+    ? import.meta.env.PROD_API_URL
+    : '/api';
   if (edit){
     //编辑
     const obj = {
@@ -116,11 +127,14 @@ function newProject(edit) {
   }
 
   console.log(JSON.stringify(er))
-  axios.get('/api?',{params}).then(()=>{
+  axios.get(baseURL,{params}).then(()=>{
     router.back()
   })
 }
 onMounted(() => {
+  const baseURL = import.meta.env.PROD
+    ? import.meta.env.PROD_API_URL
+    : '/api';
   projects.value = er.sort(dateData('lastOpenTime', false))
   console.log(projects)
   if(JSON.parse(flag.value)===true) {
@@ -132,7 +146,7 @@ onMounted(() => {
      const params = new URLSearchParams();
      params.append('flag', '1');
      params.append('data', setingPath.value);
-     axios.get('/api?',{params}).then((data)=>{
+     axios.get(baseURL,{params}).then((data)=>{
        console.log(data.data)
        // router.back()
        filePath.value=data.data.path

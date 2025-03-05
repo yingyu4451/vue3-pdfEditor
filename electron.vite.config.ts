@@ -1,7 +1,8 @@
-import path, { resolve } from 'path'
+import  { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
 
+console.log('electron.vite.config.ts');
 export default defineConfig({
   main: {
     assetsInclude: ['**/*.gz?asset', '**/*.gz', '**/*.docx', '**/*.docx?asset', '**/*.traineddata'],
@@ -12,6 +13,9 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()]
   },
   renderer: {
+    define: {
+      'import.meta.env.PROD_API_URL': JSON.stringify('http://localhost:8008')
+    },
     assetsInclude: ['**/*.gz?asset', '**/*.gz', '**/*.docx', '**/*.docx?asset', '**/*.traineddata'],
     resolve: {
       alias: {
@@ -23,9 +27,10 @@ export default defineConfig({
     server: {
       proxy: {
         '/api': {
-          target: 'http://localhost:8888', // 你的 Web 服务地址
+          target: 'http://localhost:8008',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, '')
+          rewrite: (path) => path.replace(/^\/api/, ''),
+          secure: false
         }
       }
     }
