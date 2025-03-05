@@ -587,10 +587,11 @@ onMounted(async () => {
   param.append('flag', '8')
   param.append('data', settingPath)
   axios.get('/api?', { params: param }).then((res) => {
-    pdfIndexData.value.indexData = res.data
-    console.log('res.data',res.data);
-    console.log('res pdfIndexData',pdfIndexData.value);
-
+    if(res.data.length <= 0) {
+      pdfIndexData.value.indexData = res.data
+      console.log('res.data',res.data);
+      console.log('res pdfIndexData',pdfIndexData.value);
+    }
   })
   const params = new URLSearchParams()
   params.append('flag', '5')
