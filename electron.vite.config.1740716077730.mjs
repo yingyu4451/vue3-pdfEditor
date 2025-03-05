@@ -22,7 +22,7 @@ var electron_vite_config_default = defineConfig({
     server: {
       proxy: {
         "/api": {
-          target: "http://localhost:8888",
+          target: "http://localhost:8008",
           // 你的 Web 服务地址
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, "")

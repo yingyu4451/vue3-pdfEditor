@@ -529,8 +529,11 @@ function saveEdit() {
   params.append('flag', '6')
   params.append('data', JSON.stringify(headings))
   params.append('path', path)
+  const baseURL = import.meta.env.PROD
+    ? import.meta.env.PROD_API_URL
+    : '/api';
   //通过axios请求方式将标目列表保存至配置文件
-  axios.get('/api', { params }).then((res) => {
+  axios.get(baseURL, { params }).then((res) => {
     ElMessage({
       message: '保存成功',
       type: 'success'
@@ -580,13 +583,16 @@ watch(
 )
 
 onMounted(async () => {
+  const baseURL = import.meta.env.PROD
+    ? import.meta.env.PROD_API_URL
+    : '/api';
   const it = JSON.parse(window.localStorage.getItem('it'))
   const path = it.path
   const settingPath = it.settingPath
   const param = new URLSearchParams()
   param.append('flag', '8')
   param.append('data', settingPath)
-  axios.get('/api?', { params: param }).then((res) => {
+  axios.get(baseURL, { params: param }).then((res) => {
     if(res.data.length <= 0) {
       pdfIndexData.value.indexData = res.data
       console.log('res.data',res.data);
@@ -596,7 +602,7 @@ onMounted(async () => {
   const params = new URLSearchParams()
   params.append('flag', '5')
   params.append('data', path)
-  axios.get('/api?', { params }).then((base64PDF) => {
+  axios.get(baseURL, { params }).then((base64PDF) => {
     console.log(base64PDF.data)
     const base64Data = base64PDF.data.replace(/^data:application\/pdf;base64,/, '')
     const binaryData = atob(base64Data)

@@ -59,11 +59,17 @@ const handleInputChange = () => {
 }
 
 function openNewProjectWindow(flag, type) {
+
+  window.localStorage.setItem('flag', flag)
+  window.localStorage.setItem('type', type)
+  window.localStorage.setItem('setting', '')
   router.push('/newProjectWindow/?flag=' + flag + '&type=' + type)
 }
 function openChoose() {}
 function opEdit(item, key) {
-  console.log(item.settingPath)
+  window.localStorage.setItem('flag', false)
+  window.localStorage.setItem('setting', item.settingPath)
+  window.localStorage.setItem('key', key)
   router.push('/newProjectWindow/?flag=' + false + '&&setting=' + item.settingPath + '&&key=' + key)
 }
 function delProject(item, key) {

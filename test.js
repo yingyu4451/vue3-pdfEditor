@@ -2,28 +2,38 @@ const { writeFile,readFile,createReadStream,unlink } = require('fs-extra')
 const http = require('http')
 const url = require('url')
 
-http
+
+const server = http
   .createServer(function (request, response) {
     // 设置 CSP 和 CORS 响应头
-    response.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self' http://localhost:8008");
-    response.setHeader('Access-Control-Allow-Origin', '*');
-    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    response.setHeader('Access-Control-Max-Age', '86400');
-
-    // 处理 OPTIONS 预检请求
-    if (request.method === 'OPTIONS') {
-      response.writeHead(204); // 204 No Content
-      response.end();
-      return;
-    }
+    // response.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self' http://localhost:8008");
+    // response.setHeader('Access-Control-Allow-Origin', '*');
+    // response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    // response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    // response.setHeader('Access-Control-Max-Age', '86400');
+    // const corsHeaders = {
+    //   'Access-Control-Allow-Origin': '*',
+    //   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+    //   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    // };
+    // response.setHeader("Access-Control-Allow-Origin","*");
+    // // 处理 OPTIONS 预检请求
+    // if (request.method === 'OPTIONS') {
+    //   response.writeHead(204); // 204 No Content
+    //   response.end();
+    //   return;
+    // }
     const flag=url.parse(request.url, true).query.flag
+    console.log(flag)
     //读取配置文件并返回
     if(flag==='1'){
       let seting = url.parse(request.url, true).query.data
+      console.log(seting)
       try {
         readFile(seting.toString(), (err, data) => {
           response.end(JSON.stringify(eval(data.toString())[0]));
+
+          // console.log(data)
         })
       }catch(err){
         console.error(err)
@@ -157,6 +167,7 @@ http
       }
     }
   })
-  .listen(8008)
+
+server.listen(8008)
 console.log('启动'+8008)
 

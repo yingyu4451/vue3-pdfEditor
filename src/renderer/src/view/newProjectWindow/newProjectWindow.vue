@@ -11,10 +11,10 @@ const filePath = ref('')
 const remark = ref('')
 const projectCreatePerson = ref('')
 const latestEditors=ref('')
-const flag = ref(new URL(window.location.href.replace('/#', '')).searchParams.get('flag'))
-const set = ref(new URL(window.location.href.replace('/#', '')).searchParams.get('setting'))
-const key = ref(new URL(window.location.href.replace('/#', '')).searchParams.get('key'))
-const type = ref(new URL(window.location.href.replace('/#', '')).searchParams.get('type'))
+const flag = ref(window.localStorage.getItem('flag'))
+const set = ref(window.localStorage.getItem('setting'))
+const key = ref(window.localStorage.getItem('key'))
+const type = ref(window.localStorage.getItem('type'))
 const createTime = ref('')
 const setingPath = ref('')
 const lastOpenTime = ref('')
@@ -132,6 +132,8 @@ function newProject(edit) {
   })
 }
 onMounted(() => {
+  console.log(set.value)
+
   const baseURL = import.meta.env.PROD
     ? import.meta.env.PROD_API_URL
     : '/api';
@@ -214,8 +216,8 @@ function dateData(property, bol) {
     </div>
     <div class="footer">
       <el-button v-if="flag" class="footerBtn" @click="newProject(false)">完成</el-button>
-      <el-button v-if="!flag && set==null||set===''" class="footerBtn" @click="newProject">导入</el-button>
-      <el-button v-if="set !== null && set !== ''" class="footerBtn" @click="newProject(true)"
+      <el-button v-if="type === 'dr'" class="footerBtn" @click="newProject">导入</el-button>
+      <el-button v-if="set !== null && set !== ''&&set!==undefined" class="footerBtn" @click="newProject(true)"
         >保存</el-button
       >
       <el-button class="footerBtn" @click="$router.back">取消</el-button>
