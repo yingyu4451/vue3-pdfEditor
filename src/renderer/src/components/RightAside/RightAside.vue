@@ -86,7 +86,7 @@
           </template>
         </el-table-column>
         <!-- 选项 -->
-        <el-table-column v-if="item.name == 'biaoMu' || item.name == 'chuangXin'" label="选项">
+        <el-table-column v-if="item.name == 'biaoMu'" label="选项">
           <template #default="optionScope">
             <el-button-group>
               <el-tooltip content="注释在这里" effect="light">
@@ -113,14 +113,8 @@
     </el-collapse-item>
     <el-collapse-item title="参照 & 注释" name="canZhao">
       <!-- content -->
-      <el-table
-        ref="pdfIndexTable"
-        :data="pdfIndexData.indexData[0].data"
-        stripe
-        style="width: 100%"
-        size="small"
-      >
-      <el-table-column prop="content" label="标目" />
+      <el-table :data="pdfIndexData.indexData[0].data" stripe style="width: 100%" size="small">
+        <el-table-column prop="content" label="标目" />
         <el-table-column prop="canZhao" label="参照" />
         <el-table-column prop="zhuShi" label="注释" />
       </el-table>
@@ -242,7 +236,7 @@ const editRow = (scope) => {
 
 watch(pdfIndexData.value, (newVal) => {
   tagList.value = []
-  console.log(newVal.indexData[0])
+  // console.log(newVal.indexData[0])
 
   if (newVal.indexData[0].data != 0) {
     newVal.indexData[0].data.forEach((element, index) => {
