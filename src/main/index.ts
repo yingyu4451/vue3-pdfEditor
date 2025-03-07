@@ -7,12 +7,13 @@ import icon from '../../resources/icon.png?asset'
 import { exec } from 'node:child_process'
 
 
+let mainWindow
 
 
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 700,
+   mainWindow = new BrowserWindow({
+    width: 1300,
     height: 800,
     show: false,
     autoHideMenuBar: true,
@@ -67,32 +68,34 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('openProjectWindow', (event, args) => {
-    console.log(event)
-    new BrowserWindow({
-      width: 1600,
-      height: 900,
-      show: true,
-      title: args.title,
-      autoHideMenuBar: true,
-      maximizable: true,
-      ...(process.platform === 'linux' ? { icon } : {}),
-      webPreferences: {
-        // preload: join(__dirname, '../preload/index.js'),
-        // sandbox: false,
-        // nodeIntegration: true,
-        // contextIsolation: false,
-        // webSecurity: false
-      }
-    })
-      .on('page-title-updated', (event) => {
-        // 阻止默认行为，防止窗口标题被更新
-        event.preventDefault()
-      })
-      .loadURL('http://localhost:5173/#/pdf')
+    mainWindow.setTitle(args.title)
+    console.log(event.ports)
+    // console.log(event)
+    // new BrowserWindow({
+    //   width: 1600,
+    //   height: 900,
+    //   show: true,
+    //   title: args.title,
+    //   autoHideMenuBar: true,
+    //   maximizable: true,
+    //   ...(process.platform === 'linux' ? { icon } : {}),
+    //   webPreferences: {
+    //     // preload: join(__dirname, '../preload/index.js'),
+    //     // sandbox: false,
+    //     // nodeIntegration: true,
+    //     // contextIsolation: false,
+    //     // webSecurity: false
+    //   }
+    // })
+    //   .on('page-title-updated', (event) => {
+    //     // 阻止默认行为，防止窗口标题被更新
+    //     event.preventDefault()
+    //   })
+    //   .loadURL('http://localhost:5173/#/pdf')
   })
   ipcMain.on('ping', () => console.log('pong'))
 // 直接执行 node test.js 脚本
-  exec(`node test.js`, (error, stdout, stderr) => {
+   exec(`node test.js`, (error, stdout, stderr) => {
     if (error) {
       console.error(`执行脚本时出错: ${error}`);
       return;
@@ -113,6 +116,7 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
+
   if (process.platform !== 'darwin') {
     app.quit()
   }

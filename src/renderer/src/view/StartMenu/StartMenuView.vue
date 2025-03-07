@@ -1,11 +1,12 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import er from '../../../../../resources/setting/projects.json'
+
 import router from '../../router/router'
 import axios from 'axios'
 // import { windowCreate } from '../../js/plugin'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+let er = ref([])
 const dialogVisible = ref(false)
 const projects = ref()
 
@@ -14,8 +15,21 @@ onMounted(() => {
 })
 
 function load() {
-  projects.value = er.sort(dateData('lastOpenTime', false))
-  console.log(projects)
+  const baseURL = import.meta.env.PROD
+    ? import.meta.env.PROD_API_URL
+    : '/api';
+  let params = new URLSearchParams()
+  params.append('flag', '9')
+  params.append('data', 'resources/setting/projects.json')
+  axios.get(baseURL, { params: params }).then((res) => {
+    er.value=res.data
+    console.log(er.value)
+    projects.value = er.value.sort(dateData('lastOpenTime', false))
+    console.log(projects.value)
+  }).catch(err=>{
+
+  })
+
 }
 
 // property是你需要排序传入的key,bol为true时是升序，false为降序
@@ -34,13 +48,14 @@ function dateData(property, bol) {
 }
 
 function openFile(item, key) {
-  er[key].lastOpenTime = new Date().toLocaleString()
-  console.log(er)
+  er.value[key].lastOpenTime = new Date().toLocaleString()
+  console.log(er.value)
   const params = new URLSearchParams()
-  params.append('data', JSON.stringify(er))
-  window.localStorage.setItem('it', JSON.stringify(er[key]))
+  params.append('data', JSON.stringify(er.value))
+  window.localStorage.setItem('it', JSON.stringify(er.value[key]))
   // windowCreate({ title: item.projectName })
   window.electron.ipcRenderer.send('openProjectWindow',{ title: item.projectName })
+  router.push('/pdf')
   // axios.get('/api?',{params}).then(()=>{
   //
   // })
@@ -84,9 +99,9 @@ function delProject(item, key) {
         ? import.meta.env.PROD_API_URL
         : '/api';
       const params = new URLSearchParams()
-      er.splice(key, 1)
+      er.value.splice(key, 1)
       params.append('flag', '2')
-      params.append('data', JSON.stringify(er))
+      params.append('data', JSON.stringify(er.value))
       axios.get(baseURL, { params: params }).then((res) => {})
       const params2 = new URLSearchParams()
       params2.append('flag', '7')

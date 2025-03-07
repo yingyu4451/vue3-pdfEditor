@@ -32,14 +32,11 @@ const server = http
       try {
         readFile(seting.toString(), (err, data) => {
           response.end(JSON.stringify(eval(data.toString())[0]));
-
-          // console.log(data)
         })
       }catch(err){
         console.error(err)
         response.end(JSON.stringify(err));
       }
-
     }
     //导入项目，只需要在总配置文件新增，项目信息
     if(flag==='2'){
@@ -85,7 +82,7 @@ const server = http
     //编辑项目信息
     if(flag==='4'){
       const listString = url.parse(request.url, true).query.data
-      const list = JSON.parse(listString)
+      const list = eval(listString)
       const key = url.parse(request.url, true).query.key
       try {
         writeFile(
@@ -164,6 +161,18 @@ const server = http
      }catch(err){
         console.error(err)
        response.end(JSON.stringify(err));
+      }
+    }
+    if(flag==='9'){
+      let seting = url.parse(request.url, true).query.data
+      console.log(seting)
+      try {
+        readFile(seting.toString(), (err, data) => {
+          response.end(JSON.stringify(eval(data.toString())));
+        })
+      }catch(err){
+        console.error(err)
+        response.end(JSON.stringify(err));
       }
     }
   })

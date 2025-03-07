@@ -1,11 +1,12 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import er from '../../../../../resources/setting/projects.json'
+
 import axios from 'axios'
 import router from '../../router/router'
 
 
 const name = ref('')
+const er = ref([])
 const projects = ref()
 const filePath = ref('')
 const remark = ref('')
@@ -84,11 +85,11 @@ function newProject(edit) {
       settingPath: setingPath.value
     }
     console.log(obj)
-    er[key.value]= obj
-    console.log(er[key.value])
+    er.value[key.value]= obj
+    console.log(er.value[key.value])
 
-    console.log(er)
-    params.append('data', JSON.stringify(er))
+    console.log(er.value)
+    params.append('data', JSON.stringify(er.value))
     params.append('flag', '4')
     params.append('key', key.value)
   }else {
@@ -97,7 +98,7 @@ function newProject(edit) {
     if(flag.value){
       latestEditors.value=projectCreatePerson.value
       setingPath.value=filePath.value.toString().substring(0,filePath.value.toString().lastIndexOf("\\")+1)+name.value+'.json'
-      er.push({
+      er.value.push({
         projectName: name.value,
         path: filePath.value,
         lastOpenTime: new Date().toLocaleString(),
@@ -108,10 +109,10 @@ function newProject(edit) {
         settingPath: setingPath.value
       })
       params.append('flag', '3');
-      params.append('data', JSON.stringify(er));
+      params.append('data', JSON.stringify(er.value));
     } else {
       //导入项目
-      er.push({
+      er.value.push({
         projectName: name.value,
         path: filePath.value,
         lastOpenTime: lastOpenTime.value,
@@ -122,23 +123,33 @@ function newProject(edit) {
         settingPath: setingPath.value
       })
       params.append('flag', '2');
-      params.append('data', JSON.stringify(er));
+      params.append('data', JSON.stringify(er.value));
     }
   }
 
-  console.log(JSON.stringify(er))
+  console.log(JSON.stringify(er.value))
   axios.get(baseURL,{params}).then(()=>{
     router.back()
   })
 }
 onMounted(() => {
   console.log(set.value)
-
   const baseURL = import.meta.env.PROD
     ? import.meta.env.PROD_API_URL
     : '/api';
-  projects.value = er.sort(dateData('lastOpenTime', false))
-  console.log(projects)
+  let params = new URLSearchParams()
+  params.append('flag', '9')
+  params.append('data', 'resources/setting/projects.json')
+  axios.get(baseURL, { params: params }).then((res) => {
+    er.value=res.data
+    console.log(er.value)
+    projects.value = er.value.sort(dateData('lastOpenTime', false))
+    console.log(projects.value)
+  }).catch(err=>{
+
+  })
+
+
   if(JSON.parse(flag.value)===true) {
    flag.value = true
   }else {

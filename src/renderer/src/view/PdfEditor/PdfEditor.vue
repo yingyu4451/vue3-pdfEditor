@@ -588,12 +588,13 @@ onMounted(async () => {
     : '/api';
   const it = JSON.parse(window.localStorage.getItem('it'))
   const path = it.path
+  console.log('path', path)
   const settingPath = it.settingPath
   const param = new URLSearchParams()
   param.append('flag', '8')
   param.append('data', settingPath)
   axios.get(baseURL, { params: param }).then((res) => {
-    if(res.data.length <= 0) {
+    if(res.data.length !== 0) {
       pdfIndexData.value.indexData = res.data
       console.log('res.data',res.data);
       console.log('res pdfIndexData',pdfIndexData.value);

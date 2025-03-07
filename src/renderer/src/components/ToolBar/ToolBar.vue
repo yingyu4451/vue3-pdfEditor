@@ -48,6 +48,7 @@ import { saveAs } from 'file-saver'
 import inputWord from '../../../../../resources/input.docx?asset'
 import { pinyin } from 'pinyin-pro'
 import axios from 'axios'
+import router from '../../router/router'
 
 const pdfSetting = inject('pdfSetting')
 const pdfIndexData = inject('pdfIndexData')
@@ -55,7 +56,7 @@ const outputData = inject('outputData')
 const saveEdit = inject('saveEdit')
 
 function closeWindow() {
-  window.close()
+  router.back()
 }
 
 function loadFile(url) {
