@@ -199,32 +199,35 @@ const updateTable = (tableData, index) => {
   }
 }
 
-const deleteRow = (dataName, scope) => {
-  // console.log('dataName', dataName)
+const deleteRow = (index, scope) => {
+  // console.log('index', index)
   // console.log('index.store', scope)
   // console.log('index.row', index.row)
   // console.log('index.$index', index.$index)
+  console.log(pdfIndexData.value)
 
-  if (
-    (dataName == 0) &
-    (pdfIndexData.value.indexData[dataName].data[scope.$index].type == 'chuangXin')
-  ) {
-    removeTextHightLight(pdfIndexData.value.indexData[1].data[scope.$index].content)
+  if (pdfIndexData.value.indexData[index].data[scope.$index].type == 'chuangXin') {
+    console.log('index == 0');
+    removeTextHightLight(pdfIndexData.value.indexData[index].data[scope.$index].content)
     // 删除数据
-    pdfIndexData.value.indexData[1].data.splice(scope.$index, 1)
+    pdfIndexData.value.indexData[1].data.forEach((element, index) => {
+      if (element.content == pdfIndexData.value.indexData[1].data[index].content) {
+        pdfIndexData.value.indexData[1].data.splice(index, 1)
+      }
+    })
   }
 
-  if (
-    (dataName == 1) &
-    (pdfIndexData.value.indexData[dataName].data[scope.$index].type == 'chuangXin')
-  ) {
-    removeTextHightLight(pdfIndexData.value.indexData[0].data[scope.$index].content)
-    // 删除数据
-    pdfIndexData.value.indexData[0].data.splice(scope.$index, 1)
-  }
-  removeTextHightLight(pdfIndexData.value.indexData[dataName].data[scope.$index].content)
+  // if ((index == 1) & (pdfIndexData.value.indexData[index].data[scope.$index].type == 'chuangXin')) {
+  //   console.log('index == 1');
+
+  //   removeTextHightLight(pdfIndexData.value.indexData[0].data[scope.$index].content)
+  //   // 删除数据
+  //   pdfIndexData.value.indexData[0].data.splice(scope.$index, 1)
+  // }
+  console.log('normal');
+  removeTextHightLight(pdfIndexData.value.indexData[index].data[scope.$index].content)
   // 删除数据
-  pdfIndexData.value.indexData[dataName].data.splice(scope.$index, 1)
+  pdfIndexData.value.indexData[index].data.splice(scope.$index, 1)
 }
 
 const editRow = (scope) => {

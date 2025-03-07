@@ -10,7 +10,7 @@
         </el-header>
         <el-main>
           <div id="pdfViewer" class="relative">
-            <el-scrollbar ref="pdfContainerScroll" max-height="100vmax" @scroll="scrollBarMove">
+            <el-scrollbar ref="pdfContainerScroll" max-height="100vh" @scroll="scrollBarMove">
               <!-- 添加按钮 -->
               <el-dropdown style="display: none" @command="addIndexItem">
                 <el-button size="small" type="success">
@@ -171,7 +171,7 @@ document.addEventListener('mouseup', (event) => {
     pdfSelectionPage.value = document
       .getSelection()
       .focusNode.parentElement.attributes.getNamedItem('data-page').value
-    console.log(event.clientX)
+    // console.log(event.clientX)
 
     addMenu.style.top = `${event.clientY - 70}px`
     addMenu.style.left = `${event.clientX - parseFloat(eventElementParentParentMarginStyle.marginLeft)}px`
@@ -248,7 +248,7 @@ const scrollpage = (page) => {
       top: pageElement.offsetTop,
       behavior: 'smooth'
     })
-    pdfCurrentPage.value = page
+    // pdfCurrentPage.value = page
   }
 }
 
@@ -385,14 +385,13 @@ const removeTextHightLight = (textToRemoveHighlight) => {
 
 // 高亮文本
 const hightLightText = (HighLightText) => {
-
   // 条件判断
   if (
     (pdfSetting.value.autoHighlight && !pdfSetting.value.showHighlight) || // 情况1
-    (!pdfSetting.value.autoHighlight && !pdfSetting.value.showHighlight)   // 情况2
+    (!pdfSetting.value.autoHighlight && !pdfSetting.value.showHighlight) // 情况2
   ) {
-    console.log('不通过：autoHighlight 和 showHighlight 的条件不满足');
-    return; // 不通过，直接返回
+    console.log('不通过：autoHighlight 和 showHighlight 的条件不满足')
+    return // 不通过，直接返回
   }
 
   const walker = document.createTreeWalker(
@@ -457,7 +456,7 @@ const createThumbnails = async () => {
 const addIndexItem = (index) => {
   if (pdfSetting.value.autoHighlight) {
     hightLightText(pdfSelectionText.value)
-  }else{
+  } else {
     hightLightText(pdfSelectionText.value)
   }
   pdfIndexData.value.indexData[index].data.push({
@@ -476,6 +475,8 @@ const addIndexItem = (index) => {
       canZhao: []
     })
   }
+  console.log('addIndexItem pdfIndexData', pdfIndexData.value)
+
   // if (event == 'biaoMu') {
   //   pdfIndexData.value.biaoMu.data.push({
   //     pdfPage: pdfPageList.value,
@@ -509,8 +510,13 @@ const addIndexItem = (index) => {
 
 const scrollBarMove = (data) => {
   // console.log(pdfContainerScroll.value,data);
-  const pdfContainer = document.querySelector('#pdfContainer')
-  console.log(pdfContainer.scrollHeight)
+  const pdfPagediv = document.querySelector('#pdfContainer').clientHeight
+  // console.log(pdfPagediv);
+  // console.log(data.scrollTop);
+
+  pdfCurrentPage.value = parseInt((data.scrollTop / pdfPagediv) * pdfTotalPages.value) + 1
+  // console.log(pdfCurrentPage.value);
+  // console.log(pdfContainer.scrollHeight)
 }
 
 // 自定义排序
@@ -529,9 +535,7 @@ function saveEdit() {
   params.append('flag', '6')
   params.append('data', JSON.stringify(headings))
   params.append('path', path)
-  const baseURL = import.meta.env.PROD
-    ? import.meta.env.PROD_API_URL
-    : '/api';
+  const baseURL = import.meta.env.PROD ? import.meta.env.PROD_API_URL : '/api'
   //通过axios请求方式将标目列表保存至配置文件
   axios.get(baseURL, { params }).then((res) => {
     ElMessage({
@@ -556,7 +560,7 @@ provide('sortText', sortText)
 provide('scrollpage', scrollpage)
 provide('renderAllPages', renderAllPages)
 provide('saveEdit', saveEdit)
-provide('dialogResult', dialogResult)
+// provide('dialogResult', dialogResult)
 
 // watch(pdfIndexData.value, (newVal, oldVal) => {
 //   console.log('pdfIndexData old', oldVal)
@@ -569,7 +573,7 @@ watch(
     if (newVal) {
       console.log('if true')
       for (let index = 0; index < pdfIndexData.value.indexData[0].data.length; index++) {
-        console.log(pdfIndexData.value.indexData[0].data[index].highlight);
+        console.log(pdfIndexData.value.indexData[0].data[index].highlight)
         if (pdfIndexData.value.indexData[0].data[index].highlight) {
           hightLightText(pdfIndexData.value.indexData[0].data[index].content)
         }
@@ -583,9 +587,7 @@ watch(
 )
 
 onMounted(async () => {
-  const baseURL = import.meta.env.PROD
-    ? import.meta.env.PROD_API_URL
-    : '/api';
+  const baseURL = import.meta.env.PROD ? import.meta.env.PROD_API_URL : '/api'
   const it = JSON.parse(window.localStorage.getItem('it'))
   const path = it.path
   console.log('path', path)
@@ -594,10 +596,10 @@ onMounted(async () => {
   param.append('flag', '8')
   param.append('data', settingPath)
   axios.get(baseURL, { params: param }).then((res) => {
-    if(res.data.length !== 0) {
+    if (res.data.length !== 0) {
       pdfIndexData.value.indexData = res.data
-      console.log('res.data',res.data);
-      console.log('res pdfIndexData',pdfIndexData.value);
+      console.log('res.data', res.data)
+      console.log('res pdfIndexData', pdfIndexData.value)
     }
   })
   const params = new URLSearchParams()
@@ -622,6 +624,8 @@ onMounted(async () => {
     // console.log(pdfIndexData.value.indexData[key].id)
     pdfIndexData.value.indexData[key].id = key
   }
+
+  console.log('pdfIndexData.value', pdfIndexData.value)
 })
 window.addEventListener('beforeunload', function (event) {
   saveEdit()
