@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu, MenuItem } from 'electron'
 import path, { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -9,13 +9,12 @@ import http from 'http'
 import url from 'url'
 import { readFile, unlink, writeFile } from 'fs-extra'
 
-
 let mainWindow
 let server
 
 function createWindow(): void {
   // Create the browser window.
-   mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1300,
     height: 800,
     show: false,
@@ -46,12 +45,12 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-// 生产环境加载打包后的文件
+  // 生产环境加载打包后的文件
   if (import.meta.env.PROD) {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   } else {
-    mainWindow.loadURL('http://localhost:5173'); // Vite 开发服务器
-    mainWindow.webContents.openDevTools();
+    mainWindow.loadURL('http://localhost:5173') // Vite 开发服务器
+    mainWindow.webContents.openDevTools()
   }
 }
 
@@ -67,6 +66,24 @@ app.whenReady().then(() => {
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
+  })
+
+  // 右键菜单
+  ipcMain.on('contextmenu', (event) => {
+    const menu = new Menu()
+    menu.append(
+      new MenuItem({
+        label: '添加标目',
+        click: () => event.reply('contextmenuCommand', '0')
+      })
+    )
+    menu.append(
+      new MenuItem({
+        label: '添加创新词汇',
+        click: () => event.reply('contextmenuCommand', '1')
+      })
+    )
+    menu.popup({ window: mainWindow })
   })
 
   // IPC test
@@ -97,235 +114,216 @@ app.whenReady().then(() => {
     //   .loadURL('http://localhost:5173/#/pdf')
   })
   ipcMain.on('ping', () => console.log('pong'))
-// 直接执行 node test.js 脚本
-//    exec(`test.exe` , (error, stdout, stderr) => {
-//     if (error) {
-//       console.error(`执行脚本时出错: ${error}`);
-//       return;
-//     }
-//     console.log(`脚本输出: ${stdout}`);
-//     console.error(`脚本错误输出: ${stderr}`);
-//   });
-   server = http
-    .createServer(function (request, response) {
-      const urlToParse = request.url || '';
-      // 设置 CSP 和 CORS 响应头
-      // response.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self' http://localhost:8008");
-      // response.setHeader('Access-Control-Allow-Origin', '*');
-      // response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-      // response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      // response.setHeader('Access-Control-Max-Age', '86400');
-      // const corsHeaders = {
-      //   'Access-Control-Allow-Origin': '*',
-      //   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
-      //   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      // };
-      // response.setHeader("Access-Control-Allow-Origin","*");
-      // // 处理 OPTIONS 预检请求
-      // if (request.method === 'OPTIONS') {
-      //   response.writeHead(204); // 204 No Content
-      //   response.end();
-      //   return;
-      // }
-      const flag=url.parse(urlToParse, true).query.flag
-      console.log(flag)
-      //读取配置文件并返回
-      if(flag==='1'){
-        let seting = url.parse(urlToParse, true).query.data
-        console.log(seting)
-        try {
-          if(seting)
+  // 直接执行 node test.js 脚本
+  //    exec(`test.exe` , (error, stdout, stderr) => {
+  //     if (error) {
+  //       console.error(`执行脚本时出错: ${error}`);
+  //       return;
+  //     }
+  //     console.log(`脚本输出: ${stdout}`);
+  //     console.error(`脚本错误输出: ${stderr}`);
+  //   });
+  server = http.createServer(function (request, response) {
+    const urlToParse = request.url || ''
+    // 设置 CSP 和 CORS 响应头
+    // response.setHeader('Content-Security-Policy', "default-src 'self'; connect-src 'self' http://localhost:8008");
+    // response.setHeader('Access-Control-Allow-Origin', '*');
+    // response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    // response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    // response.setHeader('Access-Control-Max-Age', '86400');
+    // const corsHeaders = {
+    //   'Access-Control-Allow-Origin': '*',
+    //   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+    //   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    // };
+    // response.setHeader("Access-Control-Allow-Origin","*");
+    // // 处理 OPTIONS 预检请求
+    // if (request.method === 'OPTIONS') {
+    //   response.writeHead(204); // 204 No Content
+    //   response.end();
+    //   return;
+    // }
+    const flag = url.parse(urlToParse, true).query.flag
+    console.log(flag)
+    //读取配置文件并返回
+    if (flag === '1') {
+      let seting = url.parse(urlToParse, true).query.data
+      console.log(seting)
+      try {
+        if (seting)
           readFile(seting.toString(), (err, data) => {
-            if(err){
+            if (err) {
               console.error(err)
             }
-            response.end(JSON.stringify(eval(data.toString())[0]));
+            response.end(JSON.stringify(eval(data.toString())[0]))
           })
-        }catch(err){
-          console.error(err)
-          response.end(JSON.stringify(err));
-        }
+      } catch (err) {
+        console.error(err)
+        response.end(JSON.stringify(err))
       }
-      //导入项目，只需要在总配置文件新增，项目信息
-      if(flag==='2'){
-        let seting = url.parse(urlToParse, true).query.data
+    }
+    //导入项目，只需要在总配置文件新增，项目信息
+    if (flag === '2') {
+      let seting = url.parse(urlToParse, true).query.data
+      try {
+        writeFile('resources/setting/projects.json', seting, (err) => {
+          if (err) throw err
+          response.end('异常')
+        })
+      } catch (err) {
+        console.error(err)
+        response.end(JSON.stringify(err))
+      }
+    }
+    //新建项目，新建项目配置文件，在总配置文件新增该项目
+    if (flag === '3') {
+      const listString = url.parse(urlToParse, true).query.data
+      if (typeof listString === 'string') {
+        const list = JSON.parse(listString)
+        const obj = [list[list.length - 1], []]
         try {
+          writeFile(obj[0].settingPath, JSON.stringify(obj), (err) => {
+            if (err) throw err
+            response.end('异常')
+          })
           writeFile(
             'resources/setting/projects.json',
-            seting,
+            url.parse(urlToParse, true).query.data,
             (err) => {
               if (err) throw err
               response.end('异常')
             }
           )
-        }catch(err){
+        } catch (err) {
           console.error(err)
-          response.end(JSON.stringify(err));
+          response.end(JSON.stringify(err))
         }
       }
-      //新建项目，新建项目配置文件，在总配置文件新增该项目
-      if(flag==='3'){
-        const listString = url.parse(urlToParse, true).query.data
-        if (typeof listString === 'string') {
-          const list = JSON.parse(listString)
-          const obj = [list[list.length - 1],[]]
-          try {
-            writeFile(obj[0].settingPath, JSON.stringify(obj), (err) => {
+    }
+    //编辑项目信息
+    if (flag === '4') {
+      const listString = url.parse(urlToParse, true).query.data
+      const key = url.parse(urlToParse, true).query.key
+      if (typeof listString === 'string' && typeof key === 'string') {
+        const list = eval(listString)
+        try {
+          writeFile('resources/setting/projects.json', listString, (err) => {
+            if (err) throw err
+            response.end('异常')
+          })
+          readFile(list[key].settingPath, (err, data) => {
+            if (err) {
+              console.error(err)
+            }
+            const tempList = eval(data.toString())
+            tempList[0] = list[key]
+            writeFile(list[key].settingPath, JSON.stringify(tempList), (err) => {
               if (err) throw err
               response.end('异常')
             })
-            writeFile(
-              'resources/setting/projects.json',
-              url.parse(urlToParse, true).query.data,
-              (err) => {
-                if (err) throw err
-                response.end('异常')
-              }
-            )
-          }catch(err){
-            console.error(err)
-            response.end(JSON.stringify(err));
-          }
+          })
+        } catch (err) {
+          console.dir(err)
+          response.end(JSON.stringify(err))
         }
-
-
       }
-      //编辑项目信息
-      if(flag==='4'){
-        const listString = url.parse(urlToParse, true).query.data
-        const key = url.parse(urlToParse, true).query.key
-        if (typeof listString === 'string'&&typeof key === 'string') {
-          const list = eval(listString)
-          try {
-            writeFile(
-              'resources/setting/projects.json',
-              listString,
-              (err) => {
-                if (err) throw err
-                response.end('异常')
-              }
-            )
-            readFile(list[key].settingPath, (err, data) => {
-              if(err){
+    }
+    //打开项目获取项目文件
+    if (flag === '5') {
+      const file = url.parse(urlToParse, true).query.data
+      if (typeof file === 'string') {
+        try {
+          readFile(file.toString(), (err, data) => {
+            if (err) {
+              console.error(err)
+            }
+            let base = data.toString('base64')
+            response.setHeader('Content-Type', 'application/pdf')
+            response.end(base)
+          })
+        } catch (err) {
+          console.error(err)
+          response.end(JSON.stringify(err))
+        }
+      }
+    }
+    //保存标目信息
+    if (flag === '6') {
+      //读取标目列表
+      const headings = url.parse(urlToParse, true).query.data
+      //读取配置文件地址
+      const path = url.parse(urlToParse, true).query.path
+      //读取配置文件信息
+      if (typeof headings === 'string' && typeof path === 'string') {
+        try {
+          readFile(path, (err, data) => {
+            //替换原有标目列表
+            if (err) {
+              console.error(err)
+            }
+            const tempList = eval(data.toString())
+            tempList[1] = eval(headings)
+            writeFile(path, JSON.stringify(tempList), (err) => {
+              if (err) {
                 console.error(err)
               }
-              const tempList = eval(data.toString())
-              tempList[0]=list[key]
-              writeFile(
-                list[key].settingPath,
-                JSON.stringify(tempList),
-                (err) => {
-                  if (err) throw err
-                  response.end('异常')
-                }
-              )
             })
-          }catch(err){
-            console.dir(err)
-            response.end(JSON.stringify(err));
-          }
-        }
-
-
-      }
-      //打开项目获取项目文件
-      if(flag==='5'){
-        const file = url.parse(urlToParse, true).query.data
-        if (typeof file === 'string') {
-          try {
-            readFile(file.toString(), (err, data) => {
-              if(err){
-                console.error(err)
-              }
-              let base = data.toString('base64');
-              response.setHeader('Content-Type', 'application/pdf');
-              response.end(base);
-            })
-          }catch(err){
-            console.error(err)
-            response.end(JSON.stringify(err));
-          }
-        }
-
-      }
-      //保存标目信息
-      if(flag==='6'){
-        //读取标目列表
-        const headings = url.parse(urlToParse, true).query.data
-        //读取配置文件地址
-        const path = url.parse(urlToParse, true).query.path
-        //读取配置文件信息
-        if(typeof headings === 'string'&&typeof path === 'string'){
-          try {
-            readFile(path, (err, data) => {
-              //替换原有标目列表
-              if(err){
-                console.error(err)
-              }
-              const tempList = eval(data.toString())
-              tempList[1] = eval(headings)
-              writeFile(path, JSON.stringify(tempList), (err) => {
-                if(err){
-                  console.error(err)
-                }
-              })
-            })
-          }catch(err){
-            console.error(err)
-            response.end(JSON.stringify(err));
-          }
-        }
-        response.end('ok');
-      }
-      if(flag==='7'){
-        const settingPath = url.parse(urlToParse, true).query.data
-        if(typeof settingPath === 'string'){
-          try {
-            unlink(settingPath,() => {})
-          }catch(err){console.error(err)}
+          })
+        } catch (err) {
+          console.error(err)
+          response.end(JSON.stringify(err))
         }
       }
-      if(flag==='8'){
-        let seting = url.parse(urlToParse, true).query.data
-        if(seting!==undefined && seting!==null){
-          try {
-            readFile(seting.toString(), (err, data) => {
-              if(err){
-                console.error(err)
-              }
-              console.log(JSON.stringify(eval(data.toString())[1]))
-              response.end(JSON.stringify(eval(data.toString())[1]));
-            })
-          }catch(err){
-            console.error(err)
-            response.end(JSON.stringify(err));
-          }
+      response.end('ok')
+    }
+    if (flag === '7') {
+      const settingPath = url.parse(urlToParse, true).query.data
+      if (typeof settingPath === 'string') {
+        try {
+          unlink(settingPath, () => {})
+        } catch (err) {
+          console.error(err)
         }
-
       }
-      if(flag==='9'){
-        let seting = url.parse(urlToParse, true).query.data
-        console.log(seting)
-        if(seting!==undefined && seting!==null){
-          try {
-            readFile(seting.toString(), (err, data) => {
-              if(err){
-                console.error(err)
-              }
-              response.end(JSON.stringify(eval(data.toString())));
-            })
-          }catch(err){
-            console.error(err)
-            response.end(JSON.stringify(err));
-          }
+    }
+    if (flag === '8') {
+      let seting = url.parse(urlToParse, true).query.data
+      if (seting !== undefined && seting !== null) {
+        try {
+          readFile(seting.toString(), (err, data) => {
+            if (err) {
+              console.error(err)
+            }
+            console.log(JSON.stringify(eval(data.toString())[1]))
+            response.end(JSON.stringify(eval(data.toString())[1]))
+          })
+        } catch (err) {
+          console.error(err)
+          response.end(JSON.stringify(err))
         }
-
       }
-    })
+    }
+    if (flag === '9') {
+      let seting = url.parse(urlToParse, true).query.data
+      console.log(seting)
+      if (seting !== undefined && seting !== null) {
+        try {
+          readFile(seting.toString(), (err, data) => {
+            if (err) {
+              console.error(err)
+            }
+            response.end(JSON.stringify(eval(data.toString())))
+          })
+        } catch (err) {
+          console.error(err)
+          response.end(JSON.stringify(err))
+        }
+      }
+    }
+  })
 
   server.listen(8008)
-  console.log('启动'+8008)
-
+  console.log('启动' + 8008)
 
   createWindow()
 
@@ -339,8 +337,9 @@ app.whenReady().then(() => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
+
 app.on('window-all-closed', () => {
-  server.close(()=>{
+  server.close(() => {
     console.log('服务关闭close')
   })
   if (process.platform !== 'darwin') {

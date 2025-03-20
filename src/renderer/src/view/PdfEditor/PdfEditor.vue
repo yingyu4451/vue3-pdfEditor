@@ -12,7 +12,7 @@
           <div id="pdfViewer" class="relative">
             <el-scrollbar ref="pdfContainerScroll" max-height="100vh" @scroll="scrollBarMove">
               <!-- 添加按钮 -->
-              <el-dropdown style="display: none" @command="addIndexItem">
+              <!-- <el-dropdown style="display: none" @command="addIndexItem">
                 <el-button size="small" type="success">
                   菜单<el-icon class="el-icon--right"><arrow-down /></el-icon>
                 </el-button>
@@ -26,7 +26,7 @@
                     >
                   </el-dropdown-menu>
                 </template>
-              </el-dropdown>
+              </el-dropdown> -->
               <!-- 用于动态创建 canvas 的容器 -->
               <div id="pdfContainer" ref="pdfContainer" class="w-max mx-auto relative"></div>
             </el-scrollbar>
@@ -43,7 +43,7 @@
 <script setup>
 import { ref, onMounted, watch, provide, onUnmounted } from 'vue'
 import * as pdfjsLib from 'pdfjs-dist'
-import pdf from '../../../../../resources/4.pdf?asset'
+// import pdf from '../../../../../resources/4.pdf?asset'
 // import '../../../../../resources/Tesseract/worker.min.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core.wasm.js?asset'
 // import '../../../../../resources/Tesseract/tesseract-core-simd.wasm.js?asset'
@@ -154,10 +154,30 @@ document.addEventListener('keyup', (event) => {
   currentKeyDownRef.value = ''
 })
 
+// document.addEventListener('contextmenu', (event) => {
+//   event.preventDefault()
+
+// })
+
+window.electron.ipcRenderer.on('contextmenuCommand', (event,value) => {
+  console.log(event);
+
+  switch (value) {
+    case '0':
+      addIndexItem(0)
+      break
+    case '1':
+      addIndexItem(1)
+      break
+    default:
+      break
+  }
+})
+
 document.addEventListener('mouseup', (event) => {
-  const addMenu = document.querySelector('.el-dropdown')
-  addMenu.style.zIndex = '9999'
-  addMenu.style.position = 'absolute'
+  // const addMenu = document.querySelector('.el-dropdown')
+  // addMenu.style.zIndex = '9999'
+  // addMenu.style.position = 'absolute'
 
   const eventElementParentParentMarginStyle = window.getComputedStyle(
     event.target.parentElement.parentElement
@@ -167,6 +187,8 @@ document.addEventListener('mouseup', (event) => {
     window.getSelection().toString().trim() !== '' &&
     event.target.parentElement.id.includes('page')
   ) {
+    window.electron.ipcRenderer.send('contextmenu')
+
     pdfSelectionText.value = document.getSelection().toString()
     pdfSelectionPage.value = document
       .getSelection()
@@ -181,17 +203,6 @@ document.addEventListener('mouseup', (event) => {
   }
 })
 
-// document.addEventListener('mouseover', (event) => {
-//   console.log(event);
-//   mouseOverElement.value = event.target.
-// })
-document.addEventListener('mousemove', (event) => {
-  // 视口坐标
-  // // 页面坐标
-  // const pagePosition = `(${event.pageX}, ${event.pageY})`
-  // // 屏幕坐标
-  // const screenPosition = `(${event.screenX}, ${event.screenY})`
-})
 
 // 加载 PDF 文件
 const loadPdf = async () => {
