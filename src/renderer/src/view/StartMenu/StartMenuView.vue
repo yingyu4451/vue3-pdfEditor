@@ -15,21 +15,19 @@ onMounted(() => {
 })
 
 function load() {
-  const baseURL = import.meta.env.PROD
-    ? import.meta.env.PROD_API_URL
-    : '/api';
+  const baseURL = import.meta.env.PROD ? import.meta.env.PROD_API_URL : '/api'
   let params = new URLSearchParams()
   params.append('flag', '9')
   params.append('data', 'resources/setting/projects.json')
-  axios.get(baseURL, { params: params }).then((res) => {
-    er.value=res.data
-    console.log(er.value)
-    projects.value = er.value.sort(dateData('lastOpenTime', false))
-    console.log(projects.value)
-  }).catch(err=>{
-
-  })
-
+  axios
+    .get(baseURL, { params: params })
+    .then((res) => {
+      er.value = res.data
+      console.log(er.value)
+      projects.value = er.value.sort(dateData('lastOpenTime', false))
+      console.log(projects.value)
+    })
+    .catch((err) => {})
 }
 
 // property是你需要排序传入的key,bol为true时是升序，false为降序
@@ -48,17 +46,27 @@ function dateData(property, bol) {
 }
 
 function openFile(item, key) {
-  er.value[key].lastOpenTime = new Date().toLocaleString()
-  console.log(er.value)
   const params = new URLSearchParams()
-  params.append('data', JSON.stringify(er.value))
-  window.localStorage.setItem('it', JSON.stringify(er.value[key]))
-  // windowCreate({ title: item.projectName })
-  window.electron.ipcRenderer.send('openProjectWindow',{ title: item.projectName })
-  router.push('/pdf')
-  // axios.get('/api?',{params}).then(()=>{
-  //
-  // })
+  params.append('flag', '10')
+  params.append('data', encodeURIComponent(item.path))
+  axios.get('/api', { params:params}).then((res) => {
+    if (res.data) {
+      er.value[key].lastOpenTime = new Date().toLocaleString()
+      console.log(er.value)
+      const params = new URLSearchParams()
+      params.append('data', JSON.stringify(er.value))
+      window.localStorage.setItem('it', JSON.stringify(er.value[key]))
+      // windowCreate({ title: item.projectName })
+      window.electron.ipcRenderer.send('openProjectWindow',{ title: item.projectName })
+      router.push('/pdf')
+    } else {
+      ElMessage({
+        type: 'error',
+        message: '文件不存在'
+      })
+    }
+  })
+
 }
 // 搜集输入框数据
 const inpval = ref('')
@@ -74,7 +82,6 @@ const handleInputChange = () => {
 }
 
 function openNewProjectWindow(flag, type) {
-
   window.localStorage.setItem('flag', flag)
   window.localStorage.setItem('type', type)
   window.localStorage.setItem('setting', '')
@@ -95,9 +102,7 @@ function delProject(item, key) {
     draggable: true
   })
     .then(() => {
-      const baseURL = import.meta.env.PROD
-        ? import.meta.env.PROD_API_URL
-        : '/api';
+      const baseURL = import.meta.env.PROD ? import.meta.env.PROD_API_URL : '/api'
       const params = new URLSearchParams()
       er.value.splice(key, 1)
       params.append('flag', '2')
@@ -106,10 +111,13 @@ function delProject(item, key) {
       const params2 = new URLSearchParams()
       params2.append('flag', '7')
       params2.append('data', item.settingPath)
-      axios.get(baseURL, { params: params2 }).then((res) => {}).catch(err=>{
-        console.log(err)
-        console.log(err.location)
-      })
+      axios
+        .get(baseURL, { params: params2 })
+        .then((res) => {})
+        .catch((err) => {
+          console.log(err)
+          console.log(err.location)
+        })
       ElMessage({
         type: 'success',
         message: '删除成功'
@@ -138,14 +146,15 @@ function delProject(item, key) {
     </div>
     <div class="body">
       <div v-for="(item, key) in projects" :key class="bodyList" @dblclick="openFile(item, key)">
-        <div style="padding: 5px">
+        <div style="color:black;padding: 5px">
           <ul>
             <li>
-              项目名称: <span :key style="user-select: none">{{ item.projectName }}</span>
+              项目名称: <span :key style="color:black;user-select: none">{{ item.projectName }}</span>
             </li>
             <li>
-              文件地址: <span style="user-select: none">{{ item.path }}</span>
-              <span style="user-select: none; position: absolute; right: 45px"
+              文件地址: <span style="color:black;user-select: none">{{ item.path }}</span>
+
+              <span style="color:black;user-select: none; position: absolute; right: 45px"
                 >最新编辑时间:{{ item.lastOpenTime }}</span
               >
             </li>
@@ -172,13 +181,13 @@ function delProject(item, key) {
   margin-left: 10px;
 }
 .bodyList {
-  background-color: #263238;
+  background-color: #f3f3f3;
   color: white;
   padding: 4px;
   margin: 4px;
 }
 .bodyList :hover {
-  background-color: #314549;
+  background-color: #d3e8f8;
   border-radius: 5px;
 }
 .bodyList :hover .omit {
@@ -189,7 +198,7 @@ function delProject(item, key) {
   width: 20px;
   background-repeat: no-repeat;
   position: relative;
-
+  color: #546e7a;
   top: 3px;
   z-index: 2;
 }
@@ -202,7 +211,7 @@ function delProject(item, key) {
   background-color: #425b67;
 }
 .all {
-  background-color: #263238;
+  background-color: #f3f3f3;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -210,7 +219,7 @@ function delProject(item, key) {
 .topSelect {
   width: 70%;
   margin: 10px;
-  background: #263238;
+  background: #f3f3f3;
   border-radius: 5px;
   border: 1px solid #425b67;
   height: 38px;
@@ -222,15 +231,15 @@ function delProject(item, key) {
 
 .topBtn {
   margin-left: 10px;
-  background-color: #2e3c43;
+  background-color: #d9d9d9;
   color: #607d8b;
-  border: 1px solid #2e3c43;
+  border: 1px solid #d9d9d9;
 }
 
 .topBtn:hover,
 .topBtn:focus {
-  background: #384e54;
-  border-color: #384e54;
+  background: #b7c5cf;
+  border-color: #b7c5cf;
   color: white;
 }
 </style>

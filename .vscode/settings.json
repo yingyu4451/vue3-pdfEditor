@@ -8,5 +8,6 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "Codegeex.RepoIndex": true
+  "Codegeex.RepoIndex": true,
+  "cline.preferredLanguage": "Simplified Chinese - 简体中文"
 }

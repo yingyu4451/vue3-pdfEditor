@@ -135,6 +135,8 @@ provide('outputData', outputData)
 provide('editDialogVisible', editDialogVisible)
 provide('dialogResult', dialogResult)
 
+
+
 // 检测屏幕大小
 if (window.innerWidth == 1920) {
   pdfSetting.value.pdfViewer.scale = 100
