@@ -28,7 +28,12 @@
                 </template>
               </el-dropdown> -->
               <!-- 用于动态创建 canvas 的容器 -->
-              <div id="pdfContainer" ref="pdfContainer" class="w-max mx-auto relative"></div>
+              <div
+                id="pdfContainer"
+                @wheel.prevent="pdfWheel"
+                ref="pdfContainer"
+                class="w-max mx-auto relative"
+              ></div>
             </el-scrollbar>
           </div>
         </el-main>
@@ -37,6 +42,7 @@
         <RightAside></RightAside>
       </el-aside>
     </el-container>
+    <CiBiaoDialog ref="ciBiaoDialog" />
   </div>
 </template>
 
@@ -56,6 +62,7 @@ import ToolBar from '@renderer/components/ToolBar/ToolBar.vue'
 import LeftAside from '@renderer/components/LeftAside/LeftAside.vue'
 import RightAside from '@renderer/components/RightAside/RightAside.vue'
 import { ElMessage } from 'element-plus'
+import CiBiaoDialog from '@renderer/components/Dialog/CiBiaoDialog.vue'
 
 // const pdfModules = import.meta.glob('@resources/*.pdf')
 
@@ -122,7 +129,8 @@ const outputData = ref()
 const editDialogVisible = ref(false)
 const dialogResult = ref()
 const scrollBarData = ref()
-
+const ciBiaoDialog = ref()
+const ciBiaoData = ref()
 provide('pdfSetting', pdfSetting)
 provide('pdfCurrentPage', pdfCurrentPage)
 provide('pdfTotalPages', pdfTotalPages)
@@ -134,8 +142,8 @@ provide('pdfIndexTable', pdfIndexTable)
 provide('outputData', outputData)
 provide('editDialogVisible', editDialogVisible)
 provide('dialogResult', dialogResult)
-
-
+provide('ciBiaoDialog', ciBiaoDialog)
+provide('ciBiaoData', ciBiaoData)
 
 // 检测屏幕大小
 if (window.innerWidth == 1920) {
@@ -161,8 +169,8 @@ document.addEventListener('keyup', (event) => {
 
 // })
 
-window.electron.ipcRenderer.on('contextmenuCommand', (event,value) => {
-  console.log(event);
+window.electron.ipcRenderer.on('contextmenuCommand', (event, value) => {
+  console.log(event)
 
   switch (value) {
     case '0':
@@ -197,14 +205,13 @@ document.addEventListener('mouseup', (event) => {
       .focusNode.parentElement.attributes.getNamedItem('data-page').value
     // console.log(event.clientX)
 
-    addMenu.style.top = `${event.clientY - 70}px`
-    addMenu.style.left = `${event.clientX - parseFloat(eventElementParentParentMarginStyle.marginLeft)}px`
-    addMenu.style.display = 'block'
+    // addMenu.style.top = `${event.clientY - 70}px`
+    // addMenu.style.left = `${event.clientX - parseFloat(eventElementParentParentMarginStyle.marginLeft)}px`
+    // addMenu.style.display = 'block'
   } else {
-    addMenu.style.display = 'none'
+    // addMenu.style.display = 'none'
   }
 })
-
 
 // 加载 PDF 文件
 const loadPdf = async () => {
@@ -398,6 +405,7 @@ const removeTextHightLight = (textToRemoveHighlight) => {
 
 // 高亮文本
 const hightLightText = (HighLightText) => {
+  pdfPageList.value = [] // 清空之前的页码列表
   // 条件判断
   if (
     (pdfSetting.value.autoHighlight && !pdfSetting.value.showHighlight) || // 情况1
@@ -469,8 +477,6 @@ const createThumbnails = async () => {
 const addIndexItem = (index) => {
   if (pdfSetting.value.autoHighlight) {
     hightLightText(pdfSelectionText.value)
-  } else {
-    hightLightText(pdfSelectionText.value)
   }
   pdfIndexData.value.indexData[index].data.push({
     pdfPage: pdfPageList.value,
@@ -508,18 +514,23 @@ const addIndexItem = (index) => {
   pdfPageList.value = []
 }
 // pdf滚动事件
-// const pdfWheel = (event) => {
-//   // 放大缩小pdf
-//   if (currentKeyDownRef.value === 'Control') {
-//     if (event.deltaY < 0) {
-//       pdfSetting.value.pdfViewer.scale += 5
-//       renderAllPages()
-//     } else {
-//       pdfSetting.value.pdfViewer.scale -= 5
-//       renderAllPages()
-//     }
-//   }
-// }
+let pdfWheelTimeout = null
+
+const pdfWheel = async (event) => {
+  if (pdfWheelTimeout) {
+    clearTimeout(pdfWheelTimeout)
+  }
+  if (currentKeyDownRef.value === 'Control') {
+    if (event.deltaY < 0) {
+      pdfSetting.value.pdfViewer.scale += 5
+    } else {
+      pdfSetting.value.pdfViewer.scale -= 5
+    }
+  }
+  pdfWheelTimeout = setTimeout(async () => {
+    renderAllPages()
+  }, 900) // 防抖延迟时间，单位为毫秒
+}
 
 const scrollBarMove = (data) => {
   // console.log(pdfContainerScroll.value,data);
@@ -573,6 +584,7 @@ provide('sortText', sortText)
 provide('scrollpage', scrollpage)
 provide('renderAllPages', renderAllPages)
 provide('saveEdit', saveEdit)
+provide('addIndexItem', addIndexItem)
 // provide('dialogResult', dialogResult)
 
 // watch(pdfIndexData.value, (newVal, oldVal) => {

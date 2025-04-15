@@ -4,9 +4,10 @@
       <!-- <el-button-group>
 
       </el-button-group> -->
-      <el-button type="default" plain size="default" @click="closeWindow">
-        返回菜单
-      </el-button>
+      <el-button type="default" plain size="default" @click="closeWindow"> 返回菜单 </el-button>
+      <el-button-group class="ml-2">
+        <el-button type="success" size="default" plain @click="openCiBiao">导入词表</el-button>
+      </el-button-group>
     </el-col>
     <el-col class="text-center" :span="12" :offset="0">
       <el-button-group>
@@ -14,11 +15,10 @@
         <el-button
           v-model="pdfSetting.autoHighlight"
           type="success"
-          active-text="自动高亮"
-          tag="el-switch"
+          tag="el-checkbox"
+          size="small"
           plain
-          style="--el-switch-on-color: #13ce66"
-          >添加自动高亮</el-button
+          >自动高亮</el-button
         >
         <el-button type="success" plain icon="" @click="saveEdit">保存</el-button>
         <el-button type="success" plain icon="" @click="renderDoc">导出文档</el-button>
@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { ref, inject } from 'vue'
 import Docxtemplater from 'docxtemplater'
 import PizZip from 'pizzip'
 import PizZipUtils from 'pizzip/utils/index.js'
@@ -50,10 +50,13 @@ import { pinyin } from 'pinyin-pro'
 import axios from 'axios'
 import router from '../../router/router'
 
+
 const pdfSetting = inject('pdfSetting')
 const pdfIndexData = inject('pdfIndexData')
 const outputData = inject('outputData')
 const saveEdit = inject('saveEdit')
+const ciBiaoDialog = inject('ciBiaoDialog')
+const ciBiaoData = inject('ciBiaoData')
 
 function closeWindow() {
   router.back()
@@ -134,6 +137,19 @@ const renderDoc = async () => {
     console.error('导出文档失败:', error)
   }
 }
+
+const openCiBiao = () => {
+  ciBiaoData.value = []
+  window.electron.ipcRenderer.send('openCiBiaoList')
+}
+
+window.electron.ipcRenderer.on('openCiBiaoList', (event, arg) => {
+  // console.log(event);
+  console.log(arg)
+  ciBiaoDialog.value.openDialog()
+  ciBiaoData.value.push(arg)
+  console.log("ciBiaoData.value",ciBiaoData.value)
+})
 </script>
 
 <style scoped>

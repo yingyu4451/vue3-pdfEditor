@@ -8,7 +8,14 @@
         :name="item.name"
       >
         <!-- content -->
-        <el-table ref="pdfIndexTable" :data="item.data" stripe style="width: 100%" size="small">
+        <el-table
+          ref="pdfIndexTable"
+          :data="item.data"
+          stripe
+          style="width: 100%"
+          max-height="23vh"
+          size="small"
+        >
           <!-- 高亮 -->
           <el-table-column
             v-if="item.name == 'biaoMu'"
@@ -77,7 +84,9 @@
                 @blur="handleInputConfirm(canZhaoScope)"
               />
               <el-button
-                v-if="!tagList[canZhaoScope.$index].editing & (canZhaoScope.row.canZhao.length == 0)"
+                v-if="
+                  !tagList[canZhaoScope.$index].editing & (canZhaoScope.row.canZhao.length == 0)
+                "
                 class="button-new-tag"
                 size="small"
                 @click="showInput(canZhaoScope)"
@@ -114,7 +123,13 @@
       </el-collapse-item>
       <el-collapse-item title="参照 & 注释" name="canZhao">
         <!-- content -->
-        <el-table :data="pdfIndexData.indexData[0].data" stripe style="width: 100%" size="small">
+        <el-table
+          :data="pdfIndexData.indexData[0].data"
+          stripe
+          style="width: 100%"
+          max-height="23vh"
+          size="small"
+        >
           <el-table-column prop="content" label="标目" />
           <el-table-column prop="canZhao" label="参照" />
           <el-table-column prop="zhuShi" label="注释" />
@@ -209,7 +224,7 @@ const deleteRow = (index, scope) => {
   console.log(pdfIndexData.value)
 
   if (pdfIndexData.value.indexData[index].data[scope.$index].type == 'chuangXin') {
-    console.log('index == 0');
+    console.log('index == 0')
     removeTextHightLight(pdfIndexData.value.indexData[index].data[scope.$index].content)
     // 删除数据
     pdfIndexData.value.indexData[1].data.forEach((element, index) => {
@@ -226,7 +241,7 @@ const deleteRow = (index, scope) => {
   //   // 删除数据
   //   pdfIndexData.value.indexData[0].data.splice(scope.$index, 1)
   // }
-  console.log('normal');
+  console.log('normal')
   removeTextHightLight(pdfIndexData.value.indexData[index].data[scope.$index].content)
   // 删除数据
   pdfIndexData.value.indexData[index].data.splice(scope.$index, 1)
