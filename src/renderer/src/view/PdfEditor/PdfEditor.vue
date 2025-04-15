@@ -652,9 +652,10 @@ onMounted(async () => {
 
   console.log('pdfIndexData.value', pdfIndexData.value)
 })
-window.addEventListener('beforeunload', function (event) {
-  saveEdit()
-})
+// window.addEventListener('beforeunload', function () {
+//   saveEdit()
+// })
+// window.addEventListener('beforeunload', saveEdit());
 </script>
 
 <style scoped>

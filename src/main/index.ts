@@ -7,18 +7,7 @@ import icon from '../../resources/icon.png?asset'
 // import { exec } from 'node:child_process'
 import http from 'http'
 import url from 'url'
-import {
-  ensureFile,
-  ensureFileSync,
-  pathExistsSync,
-  readdir,
-  readFile,
-  unlink,
-  writeFile
-} from 'fs-extra'
-import { urlencoded } from 'express'
-import { readdirSync } from 'node:fs'
-import { data } from 'autoprefixer'
+import { pathExistsSync, readdir, readFile, unlink, writeFile } from 'fs-extra'
 
 let mainWindow
 let server
@@ -157,11 +146,11 @@ app.whenReady().then(() => {
     console.log(flag)
     //读取配置文件并返回
     if (flag === '1') {
-      let seting = url.parse(urlToParse, true).query.data
-      console.log(seting)
+      const setting = url.parse(urlToParse, true).query.data
+      console.log(setting)
       try {
-        if (seting)
-          readFile(seting.toString(), (err, data) => {
+        if (setting)
+          readFile(setting.toString(), (err, data) => {
             if (err) {
               console.error(err)
             }
@@ -174,14 +163,18 @@ app.whenReady().then(() => {
     }
     //导入项目，只需要在总配置文件新增，项目信息
     if (flag === '2') {
-      let seting = url.parse(urlToParse, true).query.data
+      const setting = url.parse(urlToParse, true).query.data
+
       try {
-        writeFile('resources/setting/projects.json', seting, (err) => {
-          if (err) throw err
-          response.end('异常')
-        })
+        if (typeof setting === 'string') {
+          writeFile('resources/setting/projects.json', setting, (err) => {
+            if (err) throw err
+            response.end('异常')
+          })
+        }
+
+
       } catch (err) {
-        console.error(err)
         response.end(JSON.stringify(err))
       }
     }
@@ -196,14 +189,10 @@ app.whenReady().then(() => {
             if (err) throw err
             response.end('异常')
           })
-          writeFile(
-            'resources/setting/projects.json',
-            url.parse(urlToParse, true).query.data,
-            (err) => {
-              if (err) throw err
-              response.end('异常')
-            }
-          )
+          writeFile('resources/setting/projects.json', listString, (err) => {
+            if (err) throw err
+            response.end('异常')
+          })
         } catch (err) {
           console.error(err)
           response.end(JSON.stringify(err))
@@ -247,7 +236,7 @@ app.whenReady().then(() => {
             if (err) {
               console.error(err)
             }
-            let base = data.toString('base64')
+            const base = data.toString('base64')
             response.setHeader('Content-Type', 'application/pdf')
             response.end(base)
           })
@@ -297,10 +286,10 @@ app.whenReady().then(() => {
       }
     }
     if (flag === '8') {
-      let seting = url.parse(urlToParse, true).query.data
-      if (seting !== undefined && seting !== null) {
+      const setting = url.parse(urlToParse, true).query.data
+      if (setting !== undefined && setting !== null) {
         try {
-          readFile(seting.toString(), (err, data) => {
+          readFile(setting.toString(), (err, data) => {
             if (err) {
               console.error(err)
             }
@@ -314,11 +303,11 @@ app.whenReady().then(() => {
       }
     }
     if (flag === '9') {
-      let seting = url.parse(urlToParse, true).query.data
-      console.log(seting)
-      if (seting !== undefined && seting !== null) {
+      const setting = url.parse(urlToParse, true).query.data
+      console.log(setting)
+      if (setting !== undefined && setting !== null) {
         try {
-          readFile(seting.toString(), (err, data) => {
+          readFile(setting.toString(), (err, data) => {
             if (err) {
               console.error(err)
             }
@@ -331,15 +320,38 @@ app.whenReady().then(() => {
       }
     } //判断文件地址是否存在
     if (flag === '10') {
-      str = url.parse(urlToParse, true).query.data
-      const pathExists = pathExistsSync(decodeURIComponent(str).toString().replaceAll('\\', '\\\\'))
-      console.log(pathExists)
-      response.end(JSON.stringify(pathExists))
+      const filePath = url.parse(urlToParse, true).query.data
+      const settingPath = url.parse(urlToParse, true).query.data2
+      let pathExists
+      let pathExists2
+      let mes=''
+      if (typeof filePath === 'string') {
+         pathExists = pathExistsSync(decodeURIComponent(filePath).toString().replaceAll('\\', '\\\\'))
+      }
+      if (typeof settingPath === 'string') {
+         pathExists2 = pathExistsSync(decodeURIComponent(settingPath).toString().replaceAll('\\', '\\\\'))
+      }
+      if (!pathExists && !pathExists2) {
+        mes='pdf文件与配置文件不存在'
+        response.end(JSON.stringify(mes))
+        return;
+      }
+      if (!pathExists) {
+        mes='pdf文件不存在'
+        response.end(JSON.stringify(mes))
+        return;
+      }
+      if (!pathExists2) {
+        mes='配置文件不存在'
+        response.end(JSON.stringify(mes))
+        return;
+      }
+      response.end('cz')
     }
 
     if (flag === '11') {
-      const txt = []
-      readdir('C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\glossary', (err, files) => {
+      const txt = new Array()
+      readdir('resources/setting/glossary', (err, files) => {
         if (err) {
           console.error(err)
         }
@@ -354,26 +366,23 @@ app.whenReady().then(() => {
 
     if (flag === '12') {
       str = url.parse(urlToParse, true).query.data
-      const txts = []
-      readFile(
-        'C:\\Users\\34058\\WebstormProjects\\vue-pdf\\resources\\glossary\\' + str + '.txt',
-        (err, data) => {
-          if (err) {
-            console.error(err)
-          }
-          var strings = data.toString().split('\n')
-          if (strings.length > 0) {
-            for (let i = 0; i < strings.length - 1; i++) {
-              txts.push(strings[i])
-            }
-          } else {
-            response.setHeader('Content-Type', 'application/json; charset=utf-8')
-            response.end('词表为空')
-          }
-          response.setHeader('Content-Type', 'application/json; charset=utf-8')
-          response.end(JSON.stringify(txts))
+      const txts = new Array()
+      readFile('resources/setting/glossary' + str + '.txt', (err, data) => {
+        if (err) {
+          console.error(err)
         }
-      )
+        const strings = data.toString().split('\n')
+        if (strings.length > 0) {
+          for (let i = 0; i < strings.length - 1; i++) {
+            txts.push(strings[i])
+          }
+        } else {
+          response.setHeader('Content-Type', 'application/json; charset=utf-8')
+          response.end('词表为空')
+        }
+        response.setHeader('Content-Type', 'application/json; charset=utf-8')
+        response.end(JSON.stringify(txts))
+      })
     }
   })
 

@@ -46,11 +46,13 @@ function dateData(property, bol) {
 }
 
 function openFile(item, key) {
+  const baseURL = import.meta.env.PROD ? import.meta.env.PROD_API_URL : '/api'
   const params = new URLSearchParams()
   params.append('flag', '10')
   params.append('data', encodeURIComponent(item.path))
-  axios.get('/api', { params:params}).then((res) => {
-    if (res.data) {
+  params.append('data2', encodeURIComponent(item.settingPath))
+  axios.get(baseURL, { params:params}).then((res) => {
+    if(res.data === 'cz') {
       er.value[key].lastOpenTime = new Date().toLocaleString()
       console.log(er.value)
       const params = new URLSearchParams()
@@ -59,10 +61,10 @@ function openFile(item, key) {
       // windowCreate({ title: item.projectName })
       window.electron.ipcRenderer.send('openProjectWindow',{ title: item.projectName })
       router.push('/pdf')
-    } else {
+    }else {
       ElMessage({
         type: 'error',
-        message: '文件不存在'
+        message: res.data
       })
     }
   })
@@ -115,8 +117,7 @@ function delProject(item, key) {
         .get(baseURL, { params: params2 })
         .then((res) => {})
         .catch((err) => {
-          console.log(err)
-          console.log(err.location)
+
         })
       ElMessage({
         type: 'success',
