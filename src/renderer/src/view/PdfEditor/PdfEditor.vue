@@ -30,7 +30,7 @@
               <!-- 用于动态创建 canvas 的容器 -->
               <div
                 id="pdfContainer"
-                @wheel.prevent="pdfWheel"
+                @wheel="pdfWheel"
                 ref="pdfContainer"
                 class="w-max mx-auto relative"
               ></div>
@@ -184,19 +184,12 @@ window.electron.ipcRenderer.on('contextmenuCommand', (event, value) => {
   }
 })
 
-document.addEventListener('mouseup', (event) => {
-  // const addMenu = document.querySelector('.el-dropdown')
-  // addMenu.style.zIndex = '9999'
-  // addMenu.style.position = 'absolute'
-
-  const eventElementParentParentMarginStyle = window.getComputedStyle(
-    event.target.parentElement.parentElement
-  )
-
+const handleContextMenu = () => {
   if (
     window.getSelection().toString().trim() !== '' &&
     event.target.parentElement.id.includes('page')
   ) {
+    console.log('选中文本')
     window.electron.ipcRenderer.send('contextmenu')
 
     pdfSelectionText.value = document.getSelection().toString()
@@ -204,15 +197,8 @@ document.addEventListener('mouseup', (event) => {
       .getSelection()
       .focusNode.parentElement.attributes.getNamedItem('data-page').value
     // console.log(event.clientX)
-
-    // addMenu.style.top = `${event.clientY - 70}px`
-    // addMenu.style.left = `${event.clientX - parseFloat(eventElementParentParentMarginStyle.marginLeft)}px`
-    // addMenu.style.display = 'block'
-  } else {
-    // addMenu.style.display = 'none'
   }
-})
-
+}
 // 加载 PDF 文件
 const loadPdf = async () => {
   try {
@@ -526,10 +512,10 @@ const pdfWheel = async (event) => {
     } else {
       pdfSetting.value.pdfViewer.scale -= 5
     }
+    pdfWheelTimeout = setTimeout(async () => {
+      renderAllPages()
+    }, 500) // 防抖延迟时间，单位为毫秒
   }
-  pdfWheelTimeout = setTimeout(async () => {
-    renderAllPages()
-  }, 900) // 防抖延迟时间，单位为毫秒
 }
 
 const scrollBarMove = (data) => {
@@ -651,7 +637,13 @@ onMounted(async () => {
   }
 
   console.log('pdfIndexData.value', pdfIndexData.value)
+  document.addEventListener('mouseup', handleContextMenu)
 })
+
+onUnmounted(() => {
+  document.removeEventListener('mouseup', handleContextMenu)
+})
+
 window.addEventListener('beforeunload', function (event) {
   saveEdit()
 })
