@@ -49,6 +49,7 @@
 </template>
 
 <script setup>
+import { all } from 'axios'
 import { ref, inject, onMounted } from 'vue'
 
 const ciBiaoData = inject('ciBiaoData')
@@ -96,13 +97,11 @@ function selectAllciBiao() {
     if (!ciBiaocheckedList.value[index]) {
       ciBiaocheckedList.value[index] = { index: [] }
       element.fileData.forEach((item, itemIndex) => {
-        ciBiaocheckedList.value[index].index[itemIndex] =
-          !ciBiaocheckedList.value[index].index[itemIndex]
+        ciBiaocheckedList.value[index].index[itemIndex] = allCiBiaoCheckBox.value
       })
     } else {
       element.fileData.forEach((item, itemIndex) => {
-        ciBiaocheckedList.value[index].index[itemIndex] =
-          !ciBiaocheckedList.value[index].index[itemIndex]
+        ciBiaocheckedList.value[index].index[itemIndex] = allCiBiaoCheckBox.value
       })
     }
   })
