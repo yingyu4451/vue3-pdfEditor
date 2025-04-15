@@ -643,10 +643,10 @@ onMounted(async () => {
 onUnmounted(() => {
   document.removeEventListener('mouseup', handleContextMenu)
 })
-
-window.addEventListener('beforeunload', function (event) {
-  saveEdit()
-})
+// window.addEventListener('beforeunload', function () {
+//   saveEdit()
+// })
+// window.addEventListener('beforeunload', saveEdit());
 </script>
 
 <style scoped>
